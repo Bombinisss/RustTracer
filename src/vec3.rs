@@ -1,4 +1,3 @@
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::cmp::PartialEq;
 use std::f64;
@@ -47,9 +46,13 @@ impl Vec3 {
         )
     }
 
-    pub fn unit_vector(&self) -> Vec3 {
+    pub fn new_unit_vector(&self) -> Vec3 {
         let length = self.length();
         Vec3::new(self.x / length, self.y / length, self.z / length)
+    }
+
+    pub fn unit_vector(v: Vec3) -> Vec3  {
+    return v / v.length();
     }
 }
 
@@ -97,6 +100,30 @@ impl Mul<Vec3> for Vec3 {
             x: self.x * other.x(),
             y: self.y * other.y(),
             z: self.z * other.z(),
+        }
+    }
+}
+
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            x: self * other.x(),
+            y: self * other.y(),
+            z: self * other.z(),
+        }
+    }
+}
+
+impl Div<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn div(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            x: self / other.x(),
+            y: self / other.y(),
+            z: self / other.z(),
         }
     }
 }
