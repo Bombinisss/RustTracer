@@ -1,5 +1,10 @@
+mod vec3;
+mod color;
+
 use std::fs::File;
 use std::io::Write;
+use crate::color::write_color;
+use crate::vec3::Vec3;
 
 fn main() {
 
@@ -11,16 +16,11 @@ fn main() {
     file.try_clone().expect("REASON").write_all(format!("P3\n{} {}\n255\n", image_width, image_height).as_bytes()).expect("File header write failed!");
 
     for j in 0..image_height {
+        println!("Scan lines remaining: {} ",image_height-j);
         for i in 0..image_width {
-            let r: f64 = (i) as f64 / (image_width - 1) as f64;
-            let g: f64 = (j) as f64 / (image_height - 1) as f64;
-            let b: f64 = 0.0;
-
-            let ir: i32 = (255.999 * r) as i32;
-            let ig: i32 = (255.999 * g) as i32;
-            let ib: i32 = (255.999 * b) as i32;
-
-            file.try_clone().expect("REASON").write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes()).expect(format!("Fail on j{} i{}", j, i).as_str());
+            let pixel_color: Vec3 = Vec3::new((i) as f64 / (image_width - 1) as f64,(j) as f64 / (image_height - 1) as f64,0.0);
+            write_color(file.try_clone().unwrap(),pixel_color);
         }
     }
+    print!("Done\n")
 }
