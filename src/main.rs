@@ -8,17 +8,20 @@ use crate::color::write_color;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> bool {
+fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> f64 {
     let oc = center - r.origin;
     let a = Vec3::dot(&r.direction, &r.direction);
     let b = -2.0 * Vec3::dot(&r.direction, &oc);
     let c = Vec3::dot(&oc, &oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    if discriminant >= 0.0 { true } else { false }
+
+    if discriminant < 0.0 { -1.0 } else { (-b - f64::sqrt(discriminant) ) / (2.0*a) }
 }
 fn ray_color(r: Ray) -> Vec3 {
-    if hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Vec3::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, r);
+    if t > 0.0 {
+        let n = Vec3::unit_vector(r.at(t) - Vec3::new(0.0,0.0,-1.0));
+        return 0.5*Vec3::new(n.x()+1.0, n.y()+1.0, n.z()+1.0);
     }
 
     let unit_direction = Vec3::unit_vector(r.direction);
@@ -28,7 +31,7 @@ fn ray_color(r: Ray) -> Vec3 {
 fn main() {
     let file = File::create("test.ppm").unwrap();
 
-    let image_width = 400.0;
+    let image_width = 1000.0;
     let aspect_ratio = 16.0 / 9.0;
     let mut image_height = image_width / aspect_ratio;
     if image_height < 1.0 { image_height = 1.0 }
