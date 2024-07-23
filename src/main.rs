@@ -1,27 +1,36 @@
 mod vec3;
 mod color;
 mod ray;
+mod sphere;
+mod hittables;
+mod utils;
 
 use std::fs::File;
 use std::io::Write;
 use crate::color::write_color;
+use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 
 fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> f64 {
     let oc = center - r.origin;
-    let a = Vec3::dot(&r.direction, &r.direction);
-    let b = -2.0 * Vec3::dot(&r.direction, &oc);
-    let c = Vec3::dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = r.direction.length_squared();
+    let h = Vec3::dot(&r.direction, &oc);
+    let c = oc.length_squared() - radius*radius;
+    let discriminant = h*h - a*c;
 
-    if discriminant < 0.0 { -1.0 } else { (-b - f64::sqrt(discriminant) ) / (2.0*a) }
+    if discriminant < 0.0 { -1.0 } else { (h - f64::sqrt(discriminant)) / a }
 }
-fn ray_color(r: Ray) -> Vec3 {
-    let t = hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, r);
-    if t > 0.0 {
-        let n = Vec3::unit_vector(r.at(t) - Vec3::new(0.0,0.0,-1.0));
-        return 0.5*Vec3::new(n.x()+1.0, n.y()+1.0, n.z()+1.0);
+fn ray_color(r: Ray, world: &dyn Hittable) -> Vec3 {
+    let mut rec = HitRecord {
+        p: Vec3::new(0.0,0.0,0.0),
+        normal: Vec3::new(0.0,0.0,0.0),
+        t: 0.0,
+        front_face: false,
+    };
+    if world.hit(r, 0.0, f64::INFINITY, &mut rec){
+        return 0.5 * (rec.normal + Vec3::new(1.0,1.0,1.0))
     }
 
     let unit_direction = Vec3::unit_vector(r.direction);
@@ -35,6 +44,12 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let mut image_height = image_width / aspect_ratio;
     if image_height < 1.0 { image_height = 1.0 }
+
+    /* World */
+    let mut world = HittableList::new();
+
+    world.add(Box::new(Sphere::new(Vec3::new(0.0,0.0,-1.0), 0.5)));
+    world.add(Box::new(Sphere::new(Vec3::new(0.0,-100.5,-1.0), 100.0)));
 
     /* Camera */
     let focal_length = 1.0;
@@ -62,7 +77,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(r);
+            let pixel_color = ray_color(r, &world);
             write_color(file.try_clone().unwrap(), pixel_color);
         }
     }
