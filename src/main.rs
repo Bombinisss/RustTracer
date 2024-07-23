@@ -4,24 +4,17 @@ mod ray;
 mod sphere;
 mod hittables;
 mod utils;
+mod cube;
 
 use std::fs::File;
 use std::io::Write;
 use crate::color::write_color;
+use crate::cube::Cube;
 use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 
-fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> f64 {
-    let oc = center - r.origin;
-    let a = r.direction.length_squared();
-    let h = Vec3::dot(&r.direction, &oc);
-    let c = oc.length_squared() - radius*radius;
-    let discriminant = h*h - a*c;
-
-    if discriminant < 0.0 { -1.0 } else { (h - f64::sqrt(discriminant)) / a }
-}
 fn ray_color(r: Ray, world: &dyn Hittable) -> Vec3 {
     let mut rec = HitRecord {
         p: Vec3::new(0.0,0.0,0.0),
@@ -50,6 +43,9 @@ fn main() {
 
     world.add(Box::new(Sphere::new(Vec3::new(0.0,0.0,-1.0), 0.5)));
     world.add(Box::new(Sphere::new(Vec3::new(0.0,-100.5,-1.0), 100.0)));
+
+    world.add(Box::new(Cube::new(Vec3::new(-0.9,0.4,-1.0), 0.3)));
+    world.add(Box::new(Cube::new(Vec3::new(0.9,-0.2,-1.0), 0.3)));
 
     /* Camera */
     let focal_length = 1.0;
