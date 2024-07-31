@@ -13,6 +13,7 @@ use crate::cube::Cube;
 use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
+use crate::utils::Interval;
 use crate::vec3::Vec3;
 
 fn ray_color(r: Ray, world: &dyn Hittable) -> Vec3 {
@@ -22,7 +23,7 @@ fn ray_color(r: Ray, world: &dyn Hittable) -> Vec3 {
         t: 0.0,
         front_face: false,
     };
-    if world.hit(r, 0.0, f64::INFINITY, &mut rec){
+    if world.hit(r, Interval::new(0.0, f64::INFINITY), &mut rec){
         return 0.5 * (rec.normal + Vec3::new(1.0,1.0,1.0))
     }
 

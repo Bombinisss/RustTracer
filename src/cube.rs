@@ -1,5 +1,6 @@
 use crate::hittables::{HitRecord, Hittable};
 use crate::ray::Ray;
+use crate::utils::Interval;
 use crate::vec3::Vec3;
 
 pub struct Cube {
@@ -15,7 +16,7 @@ impl Cube {
 }
 
 impl Hittable for Cube {
-    fn hit(&self, r: Ray, ray_t_min: f64, ray_t_max: f64, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: Ray, ray_t: Interval, rec: &mut HitRecord) -> bool {
         // Half the size of the cube for calculations
         let half_size = self.size / 2.0;
 
@@ -43,12 +44,12 @@ impl Hittable for Cube {
         let t_max = t_max_x.min(t_max_y).min(t_max_z);
 
         // Check if the intersection times are valid
-        if t_max < t_min || t_max < ray_t_min || t_min > ray_t_max {
+        if t_max < t_min || t_max < ray_t.min || t_min > ray_t.max{
             return false;
         }
 
         // Set the intersection time to t_min if it's within range, otherwise use t_max
-        rec.t = if t_min < ray_t_min { t_max } else { t_min };
+        rec.t = if t_min < ray_t.min { t_max } else { t_min };
 
         // Calculate the intersection point
         rec.p = r.at(rec.t);
