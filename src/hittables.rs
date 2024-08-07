@@ -1,40 +1,47 @@
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
 
 pub trait Hittable {
-    fn hit(&self, r: Ray, ray_t: Interval, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord>;
 }
 
 #[derive(Clone, Copy)]
-pub struct HitRecord {
+pub struct HitRecord<'material> {
     pub p: Vec3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: &'material Material,
 }
 
-impl HitRecord {
+impl<'material> HitRecord<'material> {
     pub fn set_face_normal(&mut self, r: Ray, outward_normal: Vec3) -> () {
         // Sets the hit record normal vector.
         // NOTE: the parameter `outward_normal` is assumed to have unit length.
 
         self.front_face = Vec3::dot(&r.direction, &outward_normal) < 0.0;
-        self.normal = if self.front_face { outward_normal } else { -outward_normal };
+        self.normal = if self.front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
     }
 
-    pub fn new(p: Vec3, normal: Vec3, t: f64, front_face: bool) -> Self {
-        Self { p, normal, t, front_face }
-    }
-}
-
-impl Default for HitRecord {
-    fn default() -> Self {
+    pub fn new(
+        p: Vec3,
+        normal: Vec3,
+        t: f64,
+        front_face: bool,
+        material: &'material Material,
+    ) -> Self {
         Self {
-            p: Vec3::new(0.0,0.0,0.0),
-            normal: Vec3::new(0.0,0.0,0.0),
-            t: 0.0,
-            front_face: false,
+            p,
+            normal,
+            t,
+            front_face,
+            material,
         }
     }
 }
@@ -60,19 +67,17 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: Ray, ray_t: Interval, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord::default();
-        let mut hit_anything = false;
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
+        let mut temp_rec = None;
         let mut closest_so_far = ray_t.max;
 
         for object in &self.objects {
-            if object.hit(r, Interval::new(ray_t.min, closest_so_far), &mut temp_rec){
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-                *rec = temp_rec;
+            if let Some(hit) = object.hit(r, Interval::new(ray_t.min, closest_so_far)) {
+                closest_so_far = hit.t;
+                temp_rec = Some(hit);
             }
         }
 
-        return hit_anything;
+        temp_rec
     }
 }

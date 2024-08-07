@@ -21,7 +21,7 @@ pub struct Interval {
 
 impl Interval {
     pub const fn new(min: f64, max: f64) -> Interval {
-        Interval {min, max}
+        Interval { min, max }
     }
 
     pub fn size(&self) -> f64 {
@@ -36,9 +36,13 @@ impl Interval {
         self.min < x && x < self.max
     }
 
-    pub fn clamp(&self,x: f64) -> f64 {
-        if x < self.min { return self.min; }
-        if x > self.max { return self.max; }
+    pub fn clamp(&self, x: f64) -> f64 {
+        if x < self.min {
+            return self.min;
+        }
+        if x > self.max {
+            return self.max;
+        }
         return x;
     }
 

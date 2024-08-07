@@ -1,10 +1,11 @@
+use crate::color::write_color;
+use crate::hittables::{Hittable, HittableList};
+use crate::material::Scatterable;
+use crate::ray::Ray;
+use crate::utils::{random_double, Interval};
+use crate::vec3::Vec3;
 use std::fs::File;
 use std::io::Write;
-use crate::color::write_color;
-use crate::hittables::{HitRecord, Hittable, HittableList};
-use crate::ray::Ray;
-use crate::utils::{Interval, random_double};
-use crate::vec3::Vec3;
 
 pub struct Camera {
     image_width: f64,
@@ -21,12 +22,17 @@ pub struct Camera {
 
 impl Camera {
     fn ray_color(r: Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
-        if depth <= 0 { return Vec3::new(0.0, 0.0, 0.0); }
+        if depth <= 0 {
+            return Vec3::new(0.0, 0.0, 0.0);
+        }
 
-        let mut rec = HitRecord::default();
-        if world.hit(r, Interval::new(0.001, f64::INFINITY), &mut rec){
-            let direction = rec.normal + Vec3::random_unit_vector();
-            return 0.5 * Camera::ray_color(Ray::new(rec.p, direction), depth-1, world)
+        if let Some(hit) = world.hit(r, Interval::new(0.001, f64::INFINITY)) {
+            let temp_rec = Some(hit).unwrap();
+
+            if let Some(scat) = temp_rec.material.scatter(&r, &temp_rec) {
+                return scat.1 * Self::ray_color(scat.0.unwrap(), depth - 1, world);
+            }
+            return Vec3::new(0.0, 0.0, 0.0);
         }
 
         let unit_direction = Vec3::unit_vector(r.direction);
@@ -35,20 +41,31 @@ impl Camera {
     }
 
     pub fn render(&self, world: &HittableList) -> () {
-        self.file.try_clone()
+        self.file
+            .try_clone()
             .expect("REASON")
-            .write_all(format!("P3\n{} {}\n255\n", (self.image_width) as i32, (self.image_height) as i32)
-                .as_bytes()).expect("File header write failed!");
+            .write_all(
+                format!(
+                    "P3\n{} {}\n255\n",
+                    (self.image_width) as i32,
+                    (self.image_height) as i32
+                )
+                .as_bytes(),
+            )
+            .expect("File header write failed!");
 
         for j in 0..(self.image_height) as i32 {
             println!("Scan lines remaining: {} ", (self.image_height) as i32 - j);
             for i in 0..(self.image_width) as i32 {
-                let mut pixel_color = Vec3::new(0.0,0.0,0.0);
+                let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
                     pixel_color = pixel_color + Camera::ray_color(r, self.max_depth, world);
                 }
-                write_color(self.file.try_clone().unwrap(), self.pixel_samples_scale * pixel_color);
+                write_color(
+                    self.file.try_clone().unwrap(),
+                    self.pixel_samples_scale * pixel_color,
+                );
             }
         }
         print!("Done\n")
@@ -73,11 +90,18 @@ impl Camera {
         Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
     }
 
-    pub fn new(aspect_ratio: f64, image_width: f64, samples_per_pixel: i32, max_depth: i32) -> Self {
+    pub fn new(
+        aspect_ratio: f64,
+        image_width: f64,
+        samples_per_pixel: i32,
+        max_depth: i32,
+    ) -> Self {
         let file = File::create("test.ppm").unwrap();
 
         let mut image_height = image_width / aspect_ratio;
-        if image_height < 1.0 { image_height = 1.0 }
+        if image_height < 1.0 {
+            image_height = 1.0
+        }
 
         let focal_length = 1.0;
         let viewport_height = 2.0;
@@ -90,7 +114,8 @@ impl Camera {
         let pixel_delta_u = viewport_u / image_width;
         let pixel_delta_v = viewport_v / image_height;
 
-        let viewport_upper_left = camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+        let viewport_upper_left =
+            camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
 
         let pixel00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) * 0.5);
 
@@ -106,7 +131,7 @@ impl Camera {
             file,
             samples_per_pixel,
             pixel_samples_scale,
-            max_depth
+            max_depth,
         }
     }
 }

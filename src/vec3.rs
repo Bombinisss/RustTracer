@@ -1,8 +1,7 @@
+use crate::utils::{random_double, random_double_range};
 use serde::{Deserialize, Serialize};
 use std::cmp::PartialEq;
-use std::f64;
 use std::ops::{Add, Div, Mul, Neg, Sub};
-use crate::utils::{random_double, random_double_range};
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize)]
 pub struct Vec3 {
@@ -53,32 +52,50 @@ impl Vec3 {
         Vec3::new(self.x / length, self.y / length, self.z / length)
     }
 
-    pub fn unit_vector(v: Vec3) -> Vec3  {
-    return v / v.length();
+    pub fn unit_vector(v: Vec3) -> Vec3 {
+        return v / v.length();
     }
 
     pub fn random_unit_vector() -> Vec3 {
-    return Vec3::unit_vector(Vec3::random_in_unit_sphere());
+        return Vec3::unit_vector(Vec3::random_in_unit_sphere());
     }
 
     pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         let on_unit_sphere = Vec3::random_unit_vector();
-        return if Vec3::dot(&on_unit_sphere, normal) > 0.0 { on_unit_sphere } else { -on_unit_sphere }
+        return if Vec3::dot(&on_unit_sphere, normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        };
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
             let p = Vec3::random_range(-1.0, 1.0);
-            if p.length_squared() < 1.0 { return p; }
+            if p.length_squared() < 1.0 {
+                return p;
+            }
         }
     }
 
     pub fn random() -> Vec3 {
-        return Vec3::new(random_double(),random_double(),random_double());
+        return Vec3::new(random_double(), random_double(), random_double());
     }
 
     pub fn random_range(min: f64, max: f64) -> Vec3 {
-        return Vec3::new(random_double_range(min, max),random_double_range(min, max),random_double_range(min, max));
+        return Vec3::new(
+            random_double_range(min, max),
+            random_double_range(min, max),
+            random_double_range(min, max),
+        );
+    }
+
+    pub fn near_zero(&self) -> bool {
+        self.x.abs() < f64::EPSILON && self.y.abs() < f64::EPSILON && self.z.abs() < f64::EPSILON
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        return v - 2.0 * Vec3::dot(&v, &n) * n;
     }
 }
 

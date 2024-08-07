@@ -1,4 +1,5 @@
 use crate::hittables::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
@@ -6,17 +7,22 @@ use crate::vec3::Vec3;
 pub struct Cube {
     center: Vec3,
     size: f64,
+    material: Material,
 }
 
 impl Cube {
-    pub fn new(center: Vec3, size: f64) -> Cube {
+    pub fn new(center: Vec3, size: f64, material: Material) -> Cube {
         let size = f64::max(0.0, size);
-        Cube { center, size }
+        Cube {
+            center,
+            size,
+            material,
+        }
     }
 }
 
 impl Hittable for Cube {
-    fn hit(&self, r: Ray, ray_t: Interval, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
         // Half the size of the cube for calculations
         let half_size = self.size / 2.0;
 
@@ -25,7 +31,11 @@ impl Hittable for Cube {
         let max_bound = self.center + Vec3::new(half_size, half_size, half_size);
 
         // Calculate the inverse of the ray direction
-        let inv_d = Vec3::new(1.0 / r.direction.x(), 1.0 / r.direction.y(), 1.0 / r.direction.z());
+        let inv_d = Vec3::new(
+            1.0 / r.direction.x(),
+            1.0 / r.direction.y(),
+            1.0 / r.direction.z(),
+        );
 
         // Calculate t0 and t1 for each axis
         let t0s = (min_bound - r.origin) * inv_d;
@@ -44,34 +54,48 @@ impl Hittable for Cube {
         let t_max = t_max_x.min(t_max_y).min(t_max_z);
 
         // Check if the intersection times are valid
-        if t_max < t_min || t_max < ray_t.min || t_min > ray_t.max{
-            return false;
+        if t_max < t_min || t_max < ray_t.min || t_min > ray_t.max {
+            return None;
         }
 
         // Set the intersection time to t_min if it's within range, otherwise use t_max
-        rec.t = if t_min < ray_t.min { t_max } else { t_min };
+        let t = if t_min < ray_t.min { t_max } else { t_min };
+
+        // Check if the valid t is within the ray interval
+        if t < ray_t.min || t > ray_t.max {
+            return None;
+        }
 
         // Calculate the intersection point
-        rec.p = r.at(rec.t);
+        let p = r.at(t);
 
         // Determine the outward normal based on the intersection point
-        let outward_normal = if rec.p.x() >= max_bound.x() - 1e-8 {
+        let outward_normal = if (p.x() - max_bound.x()).abs() < f64::EPSILON {
             Vec3::new(1.0, 0.0, 0.0)
-        } else if rec.p.x() <= min_bound.x() + 1e-8 {
+        } else if (p.x() - min_bound.x()).abs() < f64::EPSILON {
             Vec3::new(-1.0, 0.0, 0.0)
-        } else if rec.p.y() >= max_bound.y() - 1e-8 {
+        } else if (p.y() - max_bound.y()).abs() < f64::EPSILON {
             Vec3::new(0.0, 1.0, 0.0)
-        } else if rec.p.y() <= min_bound.y() + 1e-8 {
+        } else if (p.y() - min_bound.y()).abs() < f64::EPSILON {
             Vec3::new(0.0, -1.0, 0.0)
-        } else if rec.p.z() >= max_bound.z() - 1e-8 {
+        } else if (p.z() - max_bound.z()).abs() < f64::EPSILON {
             Vec3::new(0.0, 0.0, 1.0)
         } else {
             Vec3::new(0.0, 0.0, -1.0)
         };
 
+        // Create the hit record
+        let mut rec = HitRecord {
+            p,
+            normal: outward_normal,
+            t,
+            front_face: false,
+            material: &self.material,
+        };
+
         // Set the face normal in the hit record
         rec.set_face_normal(r, outward_normal);
 
-        true
+        Some(rec)
     }
 }
