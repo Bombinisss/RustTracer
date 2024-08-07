@@ -24,7 +24,7 @@ fn main() {
     world.add(Box::new(Cube::new(Vec3::new(0.9,-0.2,-1.0), 0.3)));
 
     /* Camera */
-    let cam: Camera = Camera::new(16.0 / 9.0, 400.0, 100);
+    let cam: Camera = Camera::new(16.0 / 9.0, 400.0, 100, 50);
 
     cam.render(&world);
 }

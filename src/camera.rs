@@ -16,13 +16,17 @@ pub struct Camera {
     file: File,
     samples_per_pixel: i32,
     pixel_samples_scale: f64,
+    max_depth: i32,
 }
 
 impl Camera {
-    fn ray_color(r: Ray, world: &dyn Hittable) -> Vec3 {
+    fn ray_color(r: Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
+        if depth <= 0 { return Vec3::new(0.0, 0.0, 0.0); }
+
         let mut rec = HitRecord::default();
-        if world.hit(r, Interval::new(0.0, f64::INFINITY), &mut rec){
-            return 0.5 * (rec.normal + Vec3::new(1.0,1.0,1.0))
+        if world.hit(r, Interval::new(0.001, f64::INFINITY), &mut rec){
+            let direction = rec.normal + Vec3::random_unit_vector();
+            return 0.5 * Camera::ray_color(Ray::new(rec.p, direction), depth-1, world)
         }
 
         let unit_direction = Vec3::unit_vector(r.direction);
@@ -42,7 +46,7 @@ impl Camera {
                 let mut pixel_color = Vec3::new(0.0,0.0,0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + Camera::ray_color(r, world);
+                    pixel_color = pixel_color + Camera::ray_color(r, self.max_depth, world);
                 }
                 write_color(self.file.try_clone().unwrap(), self.pixel_samples_scale * pixel_color);
             }
@@ -69,7 +73,7 @@ impl Camera {
         Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
     }
 
-    pub fn new(aspect_ratio: f64, image_width: f64, samples_per_pixel: i32) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: f64, samples_per_pixel: i32, max_depth: i32) -> Self {
         let file = File::create("test.ppm").unwrap();
 
         let mut image_height = image_width / aspect_ratio;
@@ -101,7 +105,8 @@ impl Camera {
             pixel_delta_v,
             file,
             samples_per_pixel,
-            pixel_samples_scale
+            pixel_samples_scale,
+            max_depth
         }
     }
 }
