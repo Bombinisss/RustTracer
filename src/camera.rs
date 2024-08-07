@@ -3,7 +3,7 @@ use std::io::Write;
 use crate::color::write_color;
 use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
-use crate::utils::Interval;
+use crate::utils::{Interval, random_double};
 use crate::vec3::Vec3;
 
 pub struct Camera {
@@ -13,7 +13,9 @@ pub struct Camera {
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
-    file: File
+    file: File,
+    samples_per_pixel: i32,
+    pixel_samples_scale: f64,
 }
 
 impl Camera {
@@ -37,18 +39,37 @@ impl Camera {
         for j in 0..(self.image_height) as i32 {
             println!("Scan lines remaining: {} ", (self.image_height) as i32 - j);
             for i in 0..(self.image_width) as i32 {
-                let pixel_center = self.pixel00_loc + (self.pixel_delta_u * (i) as f64) + (self.pixel_delta_v * (j) as f64);
-                let ray_direction = pixel_center - self.camera_center;
-                let r = Ray::new(self.camera_center, ray_direction);
-
-                let pixel_color = Camera::ray_color(r, world);
-                write_color(self.file.try_clone().unwrap(), pixel_color);
+                let mut pixel_color = Vec3::new(0.0,0.0,0.0);
+                for _sample in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color = pixel_color + Camera::ray_color(r, world);
+                }
+                write_color(self.file.try_clone().unwrap(), self.pixel_samples_scale * pixel_color);
             }
         }
         print!("Done\n")
     }
 
-    pub fn new(aspect_ratio: f64, image_width: f64) -> Self {
+    fn get_ray(&self, i: i32, j: i32) -> Ray {
+        // Construct a camera ray originating from the origin and directed at randomly sampled
+        // point around the pixel location i, j.
+        let offset = self.sample_square();
+        let pixel_sample = self.pixel00_loc
+            + ((i as f64 + offset.x()) * self.pixel_delta_u)
+            + ((j as f64 + offset.y()) * self.pixel_delta_v);
+
+        let ray_origin = self.camera_center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray::new(ray_origin, ray_direction)
+    }
+
+    fn sample_square(&self) -> Vec3 {
+        // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
+        Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
+    }
+
+    pub fn new(aspect_ratio: f64, image_width: f64, samples_per_pixel: i32) -> Self {
         let file = File::create("test.ppm").unwrap();
 
         let mut image_height = image_width / aspect_ratio;
@@ -69,6 +90,18 @@ impl Camera {
 
         let pixel00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) * 0.5);
 
-        Self { image_width, image_height, camera_center, pixel00_loc, pixel_delta_u, pixel_delta_v, file }
+        let pixel_samples_scale = 1.0 / (samples_per_pixel) as f64;
+
+        Self {
+            image_width,
+            image_height,
+            camera_center,
+            pixel00_loc,
+            pixel_delta_u,
+            pixel_delta_v,
+            file,
+            samples_per_pixel,
+            pixel_samples_scale
+        }
     }
 }

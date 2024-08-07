@@ -1,16 +1,16 @@
 use rand::Rng;
-fn random_double() -> f64 {
+pub fn random_double() -> f64 {
     // Returns a random real in [0, 1).
     let mut rng = rand::thread_rng();
     rng.gen::<f64>()
 }
 
-fn random_double_range(min: f64, max: f64) -> f64 {
+pub fn random_double_range(min: f64, max: f64) -> f64 {
     // Returns a random real in [min, max).
     let mut rng = rand::thread_rng();
     rng.gen_range(min..max)
 }
-fn degrees_to_radians(degrees: f64) -> f64 {
+pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * std::f64::consts::PI / 180.0
 }
 
@@ -34,6 +34,12 @@ impl Interval {
 
     pub fn surrounds(&self, x: f64) -> bool {
         self.min < x && x < self.max
+    }
+
+    pub fn clamp(&self,x: f64) -> f64 {
+        if x < self.min { return self.min; }
+        if x > self.max { return self.max; }
+        return x;
     }
 
     pub const EMPTY: Interval = Interval::new(f64::INFINITY, f64::NEG_INFINITY);
