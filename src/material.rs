@@ -9,12 +9,14 @@ pub trait Scatterable {
 pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
+    Dielectric(Dielectric),
 }
 impl Scatterable for Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
         match self {
             Material::Lambertian(l) => l.scatter(r_in, rec),
             Material::Metal(m) => m.scatter(r_in, rec),
+            Material::Dielectric(d) => d.scatter(r_in, rec),
         }
     }
 }
@@ -49,8 +51,10 @@ pub struct Metal {
 
 impl Metal {
     pub fn new(albedo: Vec3, fuzz: f64) -> Self {
-        let mut fuzz= fuzz;
-        if !(fuzz < 1.0) { fuzz = 1.0; }
+        let mut fuzz = fuzz;
+        if !(fuzz < 1.0) {
+            fuzz = 1.0;
+        }
         Metal { albedo, fuzz }
     }
 }
@@ -61,6 +65,30 @@ impl Scatterable for Metal {
         reflected = Vec3::unit_vector(reflected) + (self.fuzz * Vec3::random_unit_vector());
         let scattered = Ray::new(rec.p, reflected);
         let attenuation = self.albedo;
+
+        Some((Some(scattered), attenuation))
+    }
+}
+
+#[derive(Clone)]
+pub struct Dielectric {
+    refraction_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(refraction_index: f64) -> Self {
+        Dielectric { refraction_index }
+    }
+}
+
+impl Scatterable for Dielectric {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
+        let attenuation = Vec3::new(1.0, 1.0, 1.0);
+        let ri = if rec.front_face { 1.0 / self.refraction_index } else { self.refraction_index };
+
+        let unit_direction = Vec3::unit_vector(r_in.direction);
+        let refracted = Vec3::refract(&unit_direction, &rec.normal, ri);
+        let scattered = Ray::new(rec.p, refracted);
 
         Some((Some(scattered), attenuation))
     }
