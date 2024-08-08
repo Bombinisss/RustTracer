@@ -23,11 +23,13 @@ fn main() {
     let material_center = material::Material::Lambertian(Lambertian::new(Vec3::new(0.1, 0.2, 0.5)));
     let material_metal = material::Material::Metal(Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3));
     let material_dark_metal = material::Material::Metal(Metal::new(Vec3::new(0.8, 0.6, 0.2), 1.0));
-    let glass = material::Material::Dielectric(Dielectric::new(1.0/1.33));
+    let material_glass = material::Material::Dielectric(Dielectric::new(1.50));
+    let material_bubble = material::Material::Dielectric(Dielectric::new(1.00 / 1.50));
 
     world.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, material_ground)));
     world.add(Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.2), 0.5, material_center)));
-    world.add(Box::new(Sphere::new(Vec3::new(-1.0,    0.0, -1.0), 0.5, glass)));
+    world.add(Box::new(Sphere::new(Vec3::new(-1.0,    0.0, -1.0), 0.5, material_glass)));
+    world.add(Box::new(Sphere::new(Vec3::new(-1.0,    0.0, -1.0), 0.4, material_bubble)));
     world.add(Box::new(Sphere::new(Vec3::new( 1.0,    0.8, -1.0), 0.3, material_metal.clone())));
 
     world.add(Box::new(Cube::new(Vec3::new(-0.2, 0.8, -1.0), 0.3, material_metal)));
