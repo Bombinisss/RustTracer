@@ -84,12 +84,24 @@ impl Dielectric {
 impl Scatterable for Dielectric {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
         let attenuation = Vec3::new(1.0, 1.0, 1.0);
-        let ri = if rec.front_face { 1.0 / self.refraction_index } else { self.refraction_index };
+        let ri = if rec.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
 
         let unit_direction = Vec3::unit_vector(r_in.direction);
-        let refracted = Vec3::refract(&unit_direction, &rec.normal, ri);
-        let scattered = Ray::new(rec.p, refracted);
-
-        Some((Some(scattered), attenuation))
+        let cos_theta = (-unit_direction).dot(&rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+        let cannot_refract = ri * sin_theta > 1.0;
+        if cannot_refract {
+            let direction = Vec3::reflect(unit_direction, rec.normal);
+            let scattered = Ray::new(rec.p, direction);
+            Some((Some(scattered), attenuation))
+        } else {
+            let direction = Vec3::refract(&unit_direction, &rec.normal, ri);
+            let scattered = Ray::new(rec.p, direction);
+            Some((Some(scattered), attenuation))
+        }
     }
 }

@@ -23,7 +23,7 @@ fn main() {
     let material_center = material::Material::Lambertian(Lambertian::new(Vec3::new(0.1, 0.2, 0.5)));
     let material_metal = material::Material::Metal(Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3));
     let material_dark_metal = material::Material::Metal(Metal::new(Vec3::new(0.8, 0.6, 0.2), 1.0));
-    let glass = material::Material::Dielectric(Dielectric::new(1.50));
+    let glass = material::Material::Dielectric(Dielectric::new(1.0/1.33));
 
     world.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, material_ground)));
     world.add(Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.2), 0.5, material_center)));
