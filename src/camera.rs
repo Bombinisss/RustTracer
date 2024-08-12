@@ -2,7 +2,7 @@ use crate::color::write_color;
 use crate::hittables::{Hittable, HittableList};
 use crate::material::Scatterable;
 use crate::ray::Ray;
-use crate::utils::{random_double, Interval};
+use crate::utils::{random_double, Interval, degrees_to_radians};
 use crate::vec3::Vec3;
 use std::fs::File;
 use std::io::Write;
@@ -18,6 +18,7 @@ pub struct Camera {
     samples_per_pixel: i32,
     pixel_samples_scale: f64,
     max_depth: i32,
+    vertical_fov: f64,
 }
 
 impl Camera {
@@ -95,6 +96,7 @@ impl Camera {
         image_width: f64,
         samples_per_pixel: i32,
         max_depth: i32,
+        vertical_fov: f64,
     ) -> Self {
         let file = File::create("test.ppm").unwrap();
 
@@ -104,7 +106,9 @@ impl Camera {
         }
 
         let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let theta = degrees_to_radians(vertical_fov);
+        let h = f64::tan(theta/2.0);
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * image_width / image_height;
         let camera_center = Vec3::new(0.0, 0.0, 0.0);
 
@@ -121,6 +125,8 @@ impl Camera {
 
         let pixel_samples_scale = 1.0 / (samples_per_pixel) as f64;
 
+
+
         Self {
             image_width,
             image_height,
@@ -132,6 +138,7 @@ impl Camera {
             samples_per_pixel,
             pixel_samples_scale,
             max_depth,
+            vertical_fov,
         }
     }
 }
