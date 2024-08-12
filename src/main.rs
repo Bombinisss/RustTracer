@@ -36,7 +36,16 @@ fn main() {
     world.add(Box::new(Cube::new(Vec3::new(0.9, -0.2, -1.0), 0.3, material_dark_metal)));
 
     /* Camera */
-    let cam: Camera = Camera::new(16.0 / 9.0, 800.0, 100, 50, 90.0);
+    let cam: Camera = Camera::new(
+        16.0 / 9.0,
+        800.0,
+        100,
+        90,
+        35.0,
+        Vec3::new(-2.0,2.0,1.0),
+        Vec3::new(0.0,0.0,-1.0),
+        Vec3::new(0.0,1.0,0.0)
+    );
 
     cam.render(&world);
 }
