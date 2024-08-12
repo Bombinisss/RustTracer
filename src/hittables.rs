@@ -1,9 +1,10 @@
+use std::sync::Arc;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord>;
 }
 
@@ -47,7 +48,7 @@ impl<'material> HitRecord<'material> {
 }
 
 pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
+    objects: Vec<Arc<dyn Hittable>>,
 }
 
 impl HittableList {
@@ -61,7 +62,7 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Box<dyn Hittable>) -> () {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object);
     }
 }
