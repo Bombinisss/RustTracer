@@ -96,5 +96,5 @@ fn main() {
 
     let start = Instant::now();
     cam.render(&world);
-    println!("Frame time: {}ms", start.elapsed().as_millis());
+    println!("Frame time: {}sec", start.elapsed().as_secs_f32());
 }
