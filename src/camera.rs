@@ -58,6 +58,7 @@ impl Camera {
             pixels.chunks_mut(image_width * 3).enumerate().collect();
 
         let progress = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let total_rows = image_height;
 
         // Parallel rendering of each row (band).
         bands.into_par_iter().for_each(|(j, band)| {
@@ -95,12 +96,15 @@ impl Camera {
 
             // Update progress
             let progress_count = progress.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            let percentage = (progress_count as f64 / image_height as f64) * 100.0;
-            print!("\rRendering: {:.2}%", percentage);
+            let percentage = (progress_count + 1) as f64 / total_rows as f64;
+            let bar_width = 50; // Width of the progress bar
+            let filled_length = (percentage * bar_width as f64).round() as usize;
+            let bar = "=".repeat(filled_length) + &" ".repeat(bar_width - filled_length);
+            print!("\rRendering: [{}] {:.2}%", bar, percentage * 100.0);
             io::stdout().flush().unwrap();
         });
 
-        print!("\rRendering: 100.00%");
+        print!("\rRendering: [{}] 100.00%", "=".repeat(50));
         io::stdout().flush().unwrap();
 
         // Write the header to a file after rendering is complete.
