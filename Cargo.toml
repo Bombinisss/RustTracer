@@ -1,5 +1,5 @@
 [package]
-name = "RayTracerOneWeekend"
+name = "RustTracer"
 version = "0.1.0"
 authors = ["Bombini"]
 edition = "2021"
