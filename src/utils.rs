@@ -2,7 +2,7 @@ use rand::Rng;
 pub fn random_double() -> f64 {
     // Returns a random real in [0, 1).
     let mut rng = rand::thread_rng();
-    rng.gen::<f64>()
+    rng.random::<f64>()
 }
 
 pub fn random_double_range(min: f64, max: f64) -> f64 {
