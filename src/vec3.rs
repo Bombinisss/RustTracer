@@ -1,9 +1,8 @@
 use crate::utils::{random_double, random_double_range};
-use serde::{Deserialize, Serialize};
 use std::cmp::PartialEq;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vec3 {
     x: f64,
     y: f64,
@@ -239,5 +238,18 @@ impl Div<f64> for Vec3 {
 impl PartialEq for Vec3 {
     fn eq(&self, other: &Vec3) -> bool {
         self.x == other.x() && self.y == other.y() && self.z == other.z()
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Index out of bounds"),
+        }
     }
 }

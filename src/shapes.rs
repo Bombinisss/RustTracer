@@ -1,9 +1,10 @@
-use crate::{cube, sphere};
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
+use crate::{cube, sphere};
+use crate::aabb::Aabb;
 
 pub enum Shapes {
     Sphere(sphere::Sphere),
@@ -18,6 +19,10 @@ impl Hittable for Shapes {
             Shapes::Cube(c) => c.hit(r, ray_t),
             Shapes::Cuboid(c) => c.hit(r, ray_t),
         }
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        todo!()
     }
 }
 

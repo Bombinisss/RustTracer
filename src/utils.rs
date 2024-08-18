@@ -14,6 +14,7 @@ pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * std::f64::consts::PI / 180.0
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Interval {
     pub min: f64,
     pub max: f64,
@@ -43,9 +44,20 @@ impl Interval {
         if x > self.max {
             return self.max;
         }
-        return x;
+        x
+    }
+
+    pub fn expand(&self, delta: f64) -> Interval {
+        let padding = delta / 2.0;
+        Interval::new(self.min - padding, self.max + padding)
     }
 
     pub const EMPTY: Interval = Interval::new(f64::INFINITY, f64::NEG_INFINITY);
     pub const UNIVERSE: Interval = Interval::new(f64::NEG_INFINITY, f64::INFINITY);
+}
+
+impl Default for Interval {
+    fn default() -> Self {
+        Interval { min: 0.0, max: 0.0 }
+    }
 }

@@ -1,12 +1,14 @@
-use std::sync::Arc;
+use crate::aabb::Aabb;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::shapes::Shapes;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
+use std::sync::Arc;
 
 pub trait Hittable: Send + Sync {
     fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord>;
+    fn bounding_box(&self) -> Aabb;
 }
 
 #[derive(Clone, Copy)]
@@ -79,5 +81,9 @@ impl Hittable for HittableList {
         }
 
         temp_rec
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        todo!()
     }
 }

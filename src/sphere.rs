@@ -1,4 +1,5 @@
-use crate::hittables::HitRecord;
+use crate::aabb::Aabb;
+use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
@@ -8,18 +9,25 @@ pub struct Sphere {
     center: Vec3,
     radius: f64,
     material: Material,
+    bbox: Aabb,
 }
 
 impl Sphere {
     pub fn new(center: Vec3, radius: f64, material: Material) -> Sphere {
         let radius = f64::max(0.0, radius);
+        let radius_vec = Vec3::new(radius, radius, radius);
+        let bbox = Aabb::new_from_vec3(center - radius_vec, center + radius_vec);
         Sphere {
             center,
             radius,
             material,
+            bbox,
         }
     }
-    pub fn hit(&self, ray: Ray, ray_t: Interval) -> Option<HitRecord> {
+}
+
+impl Hittable for Sphere {
+    fn hit(&self, ray: Ray, ray_t: Interval) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);
@@ -47,5 +55,9 @@ impl Sphere {
             }
         }
         None
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        todo!()
     }
 }

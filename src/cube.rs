@@ -1,4 +1,5 @@
-use crate::hittables::HitRecord;
+use crate::aabb::Aabb;
+use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
@@ -8,6 +9,7 @@ pub struct Cube {
     center: Vec3,
     size: f64,
     material: Material,
+    bbox: Aabb,
 }
 
 impl Cube {
@@ -17,9 +19,13 @@ impl Cube {
             center,
             size,
             material,
+            bbox: Default::default(),
         }
     }
-    pub fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
+}
+
+impl Hittable for Cube {
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
         // Half the size of the cube for calculations
         let half_size = self.size / 2.0;
 
@@ -94,5 +100,9 @@ impl Cube {
         rec.set_face_normal(r, outward_normal);
 
         Some(rec)
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        todo!()
     }
 }

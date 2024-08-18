@@ -62,7 +62,6 @@ impl Camera {
 
         // Parallel rendering of each row (band).
         bands.into_par_iter().for_each(|(j, band)| {
-
             for (i, pixel) in band.chunks_exact_mut(3).enumerate() {
                 let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
@@ -108,12 +107,24 @@ impl Camera {
         io::stdout().flush().unwrap();
 
         // Write the header to a file after rendering is complete.
-        writeln!(&self.file.try_clone().expect("REASON"), "P3\n{} {}\n255", image_width, image_height)
-            .expect("File header write failed!");
+        writeln!(
+            &self.file.try_clone().expect("REASON"),
+            "P3\n{} {}\n255",
+            image_width,
+            image_height
+        )
+        .expect("File header write failed!");
 
         // Write all pixel data to the file.
         for chunk in pixels.chunks(3) {
-            writeln!(&self.file.try_clone().expect("REASON"), "{} {} {}", chunk[0], chunk[1], chunk[2]).unwrap();
+            writeln!(
+                &self.file.try_clone().expect("REASON"),
+                "{} {} {}",
+                chunk[0],
+                chunk[1],
+                chunk[2]
+            )
+            .unwrap();
         }
 
         println!("\nDone");
