@@ -1,4 +1,4 @@
-use crate::hittables::{HitRecord, Hittable};
+use crate::hittables::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
@@ -19,10 +19,7 @@ impl Cube {
             material,
         }
     }
-}
-
-impl Hittable for Cube {
-    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
+    pub fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
         // Half the size of the cube for calculations
         let half_size = self.size / 2.0;
 

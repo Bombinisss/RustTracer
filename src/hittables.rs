@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::shapes::Shapes;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
 
@@ -57,12 +58,10 @@ impl HittableList {
             objects: Vec::new(),
         }
     }
-
     pub fn clear(&mut self) -> () {
         self.objects.clear();
     }
-
-    pub fn add(&mut self, object: Arc<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<Shapes>) {
         self.objects.push(object);
     }
 }

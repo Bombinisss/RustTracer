@@ -43,7 +43,7 @@ impl Camera {
 
         let unit_direction = Vec3::unit_vector(r.direction);
         let a = 0.5 * (unit_direction.y() + 1.0);
-        return (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0);
+        (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
     }
 
     pub fn render(&self, world: &HittableList) {
@@ -141,7 +141,7 @@ impl Camera {
     fn defocus_disk_sample(&self) -> Vec3 {
         // Returns a random point in the camera defocus disk.
         let p = Vec3::random_in_unit_disk();
-        return self.camera_center + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v);
+        self.camera_center + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v)
     }
 
     fn sample_square(&self) -> Vec3 {

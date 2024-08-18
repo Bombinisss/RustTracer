@@ -1,4 +1,4 @@
-use crate::hittables::{HitRecord, Hittable};
+use crate::hittables::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
@@ -19,10 +19,7 @@ impl Sphere {
             material,
         }
     }
-}
-
-impl Hittable for Sphere {
-    fn hit(&self, ray: Ray, ray_t: Interval) -> Option<HitRecord> {
+    pub fn hit(&self, ray: Ray, ray_t: Interval) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);
