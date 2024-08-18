@@ -16,6 +16,7 @@ use crate::camera::Camera;
 use crate::cube::Cube;
 use crate::hittables::HittableList;
 use crate::material::{Lambertian, Metal, Dielectric, Material};
+use crate::shapes::Cuboid;
 use crate::sphere::Sphere;
 use crate::utils::{random_double, random_double_range};
 use crate::vec3::Vec3;
@@ -80,7 +81,7 @@ fn main() {
     world.add(Arc::new(Shapes::Sphere(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, material2))));
 
     let material3 = Material::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Arc::new(Shapes::Sphere(Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, material3))));
+    world.add(Arc::new(Shapes::Cuboid(Cuboid::new(Vec3::new(4.0, 1.0, -0.3), Vec3::new(4.0, 2.0, 1.0), material3))));
 
     /* Camera */
     let cam: Camera = Camera::new(

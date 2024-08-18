@@ -53,7 +53,7 @@ impl Vec3 {
     }
 
     pub fn unit_vector(v: Vec3) -> Vec3 {
-        return v / v.length();
+        v / v.length()
     }
 
     pub fn random_unit_vector() -> Vec3 {
@@ -62,11 +62,11 @@ impl Vec3 {
 
     pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         let on_unit_sphere = Vec3::random_unit_vector();
-        return if Vec3::dot(&on_unit_sphere, normal) > 0.0 {
+        if Vec3::dot(&on_unit_sphere, normal) > 0.0 {
             on_unit_sphere
         } else {
             -on_unit_sphere
-        };
+        }
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
@@ -96,11 +96,11 @@ impl Vec3 {
     }
 
     pub fn random_range(min: f64, max: f64) -> Vec3 {
-        return Vec3::new(
+        Vec3::new(
             random_double_range(min, max),
             random_double_range(min, max),
             random_double_range(min, max),
-        );
+        )
     }
 
     pub fn near_zero(&self) -> bool {
@@ -116,6 +116,15 @@ impl Vec3 {
         let r_out_perp = (*uv + *n * cos_theta) * etai_over_etat;
         let r_out_parallel = *n * (-1.0 * (1.0 - r_out_perp.length_squared()).abs().sqrt());
         r_out_perp + r_out_parallel
+    }
+
+    pub fn normalized(&self) -> Vec3 {
+        let len = self.length();
+        Vec3 {
+            x: self.x / len,
+            y: self.y / len,
+            z: self.z / len,
+        }
     }
 }
 
