@@ -58,6 +58,6 @@ impl Hittable for Sphere {
     }
 
     fn bounding_box(&self) -> Aabb {
-        todo!()
+        self.bbox
     }
 }

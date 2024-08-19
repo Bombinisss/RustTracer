@@ -9,6 +9,7 @@ mod shapes;
 mod sphere;
 mod utils;
 mod vec3;
+mod bvh;
 
 use crate::camera::Camera;
 use crate::cube::Cube;

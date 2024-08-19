@@ -51,20 +51,23 @@ impl<'material> HitRecord<'material> {
 }
 
 pub struct HittableList {
-    objects: Vec<Arc<dyn Hittable>>,
+    pub objects: Vec<Arc<dyn Hittable>>,
+    bbox: Aabb,
 }
 
 impl HittableList {
     pub fn new() -> Self {
         HittableList {
             objects: Vec::new(),
+            bbox: Default::default(),
         }
     }
     pub fn clear(&mut self) -> () {
         self.objects.clear();
     }
     pub fn add(&mut self, object: Arc<Shapes>) {
-        self.objects.push(object);
+        self.objects.push(object.clone());
+        self.bbox = Aabb::new_from_aabb(self.bbox, object.bounding_box());
     }
 }
 
@@ -84,6 +87,6 @@ impl Hittable for HittableList {
     }
 
     fn bounding_box(&self) -> Aabb {
-        todo!()
+        self.bbox
     }
 }

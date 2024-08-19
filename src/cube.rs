@@ -15,11 +15,13 @@ pub struct Cube {
 impl Cube {
     pub fn new(center: Vec3, size: f64, material: Material) -> Cube {
         let size = f64::max(0.0, size);
+        let half_size = Vec3::new(size / 2.0, size / 2.0, size / 2.0);
+        let bbox = Aabb::new_from_vec3(center - half_size, center + half_size);
         Cube {
             center,
             size,
             material,
-            bbox: Default::default(),
+            bbox,
         }
     }
 }
@@ -103,6 +105,6 @@ impl Hittable for Cube {
     }
 
     fn bounding_box(&self) -> Aabb {
-        todo!()
+        self.bbox
     }
 }

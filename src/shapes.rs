@@ -1,10 +1,10 @@
+use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
 use crate::{cube, sphere};
-use crate::aabb::Aabb;
 
 pub enum Shapes {
     Sphere(sphere::Sphere),
@@ -22,7 +22,11 @@ impl Hittable for Shapes {
     }
 
     fn bounding_box(&self) -> Aabb {
-        todo!()
+        match self {
+            Shapes::Sphere(s) => s.bounding_box(),
+            Shapes::Cube(c) => c.bounding_box(),
+            Shapes::Cuboid(c) => c.bounding_box(),
+        }
     }
 }
 
@@ -30,6 +34,7 @@ pub struct Cuboid {
     center: Vec3,
     dimensions: Vec3, //(width, height, depth)
     material: Material,
+    bbox: Aabb,
 }
 
 impl Cuboid {
@@ -39,14 +44,19 @@ impl Cuboid {
             f64::max(0.0, dimensions.y()),
             f64::max(0.0, dimensions.z()),
         );
+        let half_dimensions = dimensions / 2.0;
+        let bbox = Aabb::new_from_vec3(center - half_dimensions, center + half_dimensions);
         Cuboid {
             center,
             dimensions,
             material,
+            bbox,
         }
     }
+}
 
-    pub fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
+impl Hittable for Cuboid {
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
         // Half the dimensions of the cuboid for calculations
         let half_dimensions = self.dimensions / 2.0;
 
@@ -119,5 +129,9 @@ impl Cuboid {
         rec.set_face_normal(r, outward_normal);
 
         Some(rec)
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
     }
 }

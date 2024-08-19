@@ -1,6 +1,7 @@
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
+#[derive(Debug, Clone, Copy)]
 pub struct Aabb {
     pub x: Interval,
     pub y: Interval,
@@ -19,6 +20,13 @@ impl Default for Aabb {
 
 impl Aabb {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Aabb {
+        Aabb { x, y, z }
+    }
+
+    pub fn new_from_aabb(box0: Aabb, box1: Aabb) -> Aabb {
+        let x = Interval::new_from_interval(&box0.x, &box1.x);
+        let y = Interval::new_from_interval(&box0.y, &box1.y);
+        let z = Interval::new_from_interval(&box0.z, &box1.z);
         Aabb { x, y, z }
     }
 
