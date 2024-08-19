@@ -19,8 +19,31 @@ impl Default for Aabb {
 }
 
 impl Aabb {
-    pub fn new(x: Interval, y: Interval, z: Interval) -> Aabb {
+    pub const fn new(x: Interval, y: Interval, z: Interval) -> Aabb {
         Aabb { x, y, z }
+    }
+
+    pub const EMPTY: Aabb = Aabb::new(Interval::EMPTY, Interval::EMPTY, Interval::EMPTY);
+
+    pub const UNIVERSE: Aabb =
+        Aabb::new(Interval::UNIVERSE, Interval::UNIVERSE, Interval::UNIVERSE);
+
+    pub fn longest_axis(&self) -> i32 {
+        // Returns the index of the longest axis of the bounding box.
+
+        if self.x.size() > self.y.size() {
+            if self.x.size() > self.z.size() {
+                0
+            } else {
+                2
+            }
+        } else {
+            if self.y.size() > self.z.size() {
+                1
+            } else {
+                2
+            }
+        }
     }
 
     pub fn new_from_aabb(box0: Aabb, box1: Aabb) -> Aabb {

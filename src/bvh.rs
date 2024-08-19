@@ -1,7 +1,7 @@
 use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
-use crate::utils::{random_int_range, Interval};
+use crate::utils::Interval;
 use std::sync::Arc;
 
 pub struct BvhNode {
@@ -16,7 +16,14 @@ impl BvhNode {
     }
 
     pub fn new(objects: Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> BvhNode {
-        let axis = random_int_range(0, 2);
+        // Build the bounding box of the span of source objects
+        let mut bbox = Aabb::EMPTY;
+        for i in start..end {
+            bbox = Aabb::new_from_aabb(bbox, objects[i].bounding_box());
+        }
+
+        // Determine the axis with the largest extent
+        let axis = bbox.longest_axis();
 
         // Define comparators based on the axis
         let comparator: Box<dyn Fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> std::cmp::Ordering> = match axis {
@@ -33,22 +40,20 @@ impl BvhNode {
 
         let object_span = end - start;
 
-        if object_span == 1 {
-            let bbox = objects[start].bounding_box();
+        let node = if object_span == 1 {
             BvhNode {
                 left: objects[start].clone(),
                 right: objects[start].clone(),
-                bbox,
+                bbox: objects[start].bounding_box(),
             }
         } else if object_span == 2 {
-            let bbox = Aabb::new_from_aabb(
-                objects[start].bounding_box(),
-                objects[start + 1].bounding_box(),
-            );
             BvhNode {
                 left: objects[start].clone(),
                 right: objects[start + 1].clone(),
-                bbox,
+                bbox: Aabb::new_from_aabb(
+                    objects[start].bounding_box(),
+                    objects[start + 1].bounding_box(),
+                ),
             }
         } else {
             // Sort the objects based on the comparator
@@ -64,7 +69,9 @@ impl BvhNode {
                 right: right.clone(),
                 bbox: Aabb::new_from_aabb(left.bounding_box(), right.bounding_box()),
             }
-        }
+        };
+
+        node
     }
 
 }
