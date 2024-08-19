@@ -22,6 +22,7 @@ use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
 use std::time::Instant;
+use crate::bvh::BvhNode;
 
 fn main() {
     /* World */
@@ -121,11 +122,13 @@ fn main() {
         material3,
     ))));
 
+    let bvh_node = BvhNode::new_from_list(&world);
+
     /* Camera */
     let cam: Camera = Camera::new(
         16.0 / 9.0,
-        600.0,
-        100,
+        1200.0,
+        500,
         20,
         20.0,
         Vec3::new(13.0, 2.0, 3.0),
@@ -136,6 +139,6 @@ fn main() {
     );
 
     let start = Instant::now();
-    cam.render(&world);
+    cam.render(&bvh_node);
     println!("Frame time: {}sec", start.elapsed().as_secs_f32());
 }

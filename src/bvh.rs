@@ -1,7 +1,7 @@
 use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
-use crate::utils::Interval;
+use crate::utils::{random_int_range, Interval};
 use std::sync::Arc;
 
 pub struct BvhNode {
@@ -12,13 +12,61 @@ pub struct BvhNode {
 
 impl BvhNode {
     pub fn new_from_list(list: &HittableList) -> Self {
-        BvhNode::new(&list.objects, 0, list.objects.len())
+        BvhNode::new(list.objects.clone(), 0, list.objects.len())
     }
 
-    pub fn new(objects: &[Arc<dyn Hittable>], start: usize, end: usize) -> Self {
-        // To be implemented later.
-        unimplemented!()
+    pub fn new(objects: Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> BvhNode {
+        let axis = random_int_range(0, 2);
+
+        // Define comparators based on the axis
+        let comparator: Box<dyn Fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> std::cmp::Ordering> = match axis {
+            0 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                a.bounding_box().axis_interval(axis).min.partial_cmp(&b.bounding_box().axis_interval(axis).min).unwrap()
+            }),
+            1 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                a.bounding_box().axis_interval(axis).min.partial_cmp(&b.bounding_box().axis_interval(axis).min).unwrap()
+            }),
+            _ => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                a.bounding_box().axis_interval(axis).min.partial_cmp(&b.bounding_box().axis_interval(axis).min).unwrap()
+            }),
+        };
+
+        let object_span = end - start;
+
+        if object_span == 1 {
+            let bbox = objects[start].bounding_box();
+            BvhNode {
+                left: objects[start].clone(),
+                right: objects[start].clone(),
+                bbox,
+            }
+        } else if object_span == 2 {
+            let bbox = Aabb::new_from_aabb(
+                objects[start].bounding_box(),
+                objects[start + 1].bounding_box(),
+            );
+            BvhNode {
+                left: objects[start].clone(),
+                right: objects[start + 1].clone(),
+                bbox,
+            }
+        } else {
+            // Sort the objects based on the comparator
+            let mut sorted_objects = objects;
+            sorted_objects[start..end].sort_by(|a, b| comparator(a, b));
+
+            let mid = start + object_span / 2;
+            let left = Arc::new(BvhNode::new(sorted_objects.clone(), start, mid));
+            let right = Arc::new(BvhNode::new(sorted_objects.clone(), mid, end));
+
+            BvhNode {
+                left: left.clone(),
+                right: right.clone(),
+                bbox: Aabb::new_from_aabb(left.bounding_box(), right.bounding_box()),
+            }
+        }
     }
+
 }
 
 impl Hittable for BvhNode {

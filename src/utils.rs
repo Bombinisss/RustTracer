@@ -14,6 +14,10 @@ pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * std::f64::consts::PI / 180.0
 }
 
+pub fn random_int_range(min: i32, max: i32) -> i32 {
+    random_double_range((min) as f64, (max + 1) as f64) as i32
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Interval {
     pub min: f64,

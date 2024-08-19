@@ -1,5 +1,5 @@
 use crate::color::linear_to_gamma;
-use crate::hittables::{Hittable, HittableList};
+use crate::hittables::{Hittable};
 use crate::material::Scatterable;
 use crate::ray::Ray;
 use crate::utils::{degrees_to_radians, random_double, Interval};
@@ -46,7 +46,7 @@ impl Camera {
         (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
     }
 
-    pub fn render(&self, world: &HittableList) {
+    pub fn render(&self, world: &dyn Hittable) {
         let image_width = self.image_width as usize;
         let image_height = self.image_height as usize;
 
