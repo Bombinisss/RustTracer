@@ -25,7 +25,7 @@ impl Aabb {
 
     pub const EMPTY: Aabb = Aabb::new(Interval::EMPTY, Interval::EMPTY, Interval::EMPTY);
 
-    pub const UNIVERSE: Aabb =
+    pub const _UNIVERSE: Aabb =
         Aabb::new(Interval::UNIVERSE, Interval::UNIVERSE, Interval::UNIVERSE);
 
     pub fn longest_axis(&self) -> i32 {
