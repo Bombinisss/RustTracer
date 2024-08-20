@@ -26,17 +26,30 @@ impl BvhNode {
         let axis = bbox.longest_axis();
 
         // Define comparators based on the axis
-        let comparator: Box<dyn Fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> std::cmp::Ordering> = match axis {
-            0 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
-                a.bounding_box().axis_interval(axis).min.partial_cmp(&b.bounding_box().axis_interval(axis).min).unwrap()
-            }),
-            1 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
-                a.bounding_box().axis_interval(axis).min.partial_cmp(&b.bounding_box().axis_interval(axis).min).unwrap()
-            }),
-            _ => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
-                a.bounding_box().axis_interval(axis).min.partial_cmp(&b.bounding_box().axis_interval(axis).min).unwrap()
-            }),
-        };
+        let comparator: Box<dyn Fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> std::cmp::Ordering> =
+            match axis {
+                0 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                    a.bounding_box()
+                        .axis_interval(axis)
+                        .min
+                        .partial_cmp(&b.bounding_box().axis_interval(axis).min)
+                        .unwrap()
+                }),
+                1 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                    a.bounding_box()
+                        .axis_interval(axis)
+                        .min
+                        .partial_cmp(&b.bounding_box().axis_interval(axis).min)
+                        .unwrap()
+                }),
+                _ => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                    a.bounding_box()
+                        .axis_interval(axis)
+                        .min
+                        .partial_cmp(&b.bounding_box().axis_interval(axis).min)
+                        .unwrap()
+                }),
+            };
 
         let object_span = end - start;
 
@@ -73,7 +86,6 @@ impl BvhNode {
 
         node
     }
-
 }
 
 impl Hittable for BvhNode {

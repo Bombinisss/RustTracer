@@ -1,5 +1,5 @@
 use crate::color::linear_to_gamma;
-use crate::hittables::{Hittable};
+use crate::hittables::Hittable;
 use crate::material::Scatterable;
 use crate::ray::Ray;
 use crate::utils::{degrees_to_radians, random_double, Interval};
@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io;
 use std::io::Write;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 pub struct Camera {
     image_width: f64,
@@ -60,6 +61,9 @@ impl Camera {
         let progress = Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let total_rows = image_height;
 
+        // Track start time
+        let start_time = Instant::now();
+
         // Parallel rendering of each row (band).
         bands.into_par_iter().for_each(|(j, band)| {
             for (i, pixel) in band.chunks_exact_mut(3).enumerate() {
@@ -96,14 +100,37 @@ impl Camera {
             // Update progress
             let progress_count = progress.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
             let percentage = (progress_count + 1) as f64 / total_rows as f64;
+
+            // Estimate remaining time
+            let elapsed_time = start_time.elapsed();
+            let estimated_total_time = if percentage > 0.0 {
+                let total_secs = elapsed_time.as_secs_f64() / percentage;
+                Duration::from_secs_f64(total_secs)
+            } else {
+                Duration::MAX
+            };
+
+            let remaining_time = estimated_total_time - elapsed_time;
+
             let bar_width = 50; // Width of the progress bar
             let filled_length = (percentage * bar_width as f64).round() as usize;
             let bar = "=".repeat(filled_length) + &" ".repeat(bar_width - filled_length);
-            print!("\rRendering: [{}] {:.2}%", bar, percentage * 100.0);
+
+            // Format remaining time as minutes and seconds
+            let remaining_minutes = remaining_time.as_secs() / 60;
+            let remaining_seconds = remaining_time.as_secs() % 60;
+
+            print!(
+                "\rRendering: [{}] {:.2}% - ETA: {}m {}s",
+                bar,
+                percentage * 100.0,
+                remaining_minutes,
+                remaining_seconds
+            );
             io::stdout().flush().unwrap();
         });
 
-        print!("\rRendering: [{}] 100.00%", "=".repeat(50));
+        print!("\rRendering: [{}] 100.00% - Done! ", "=".repeat(50));
         io::stdout().flush().unwrap();
 
         // Write the header to a file after rendering is complete.

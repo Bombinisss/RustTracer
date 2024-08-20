@@ -32,7 +32,7 @@ impl Hittable for Sphere {
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);
         let c = oc.length_squared() - self.radius * self.radius;
-        let discriminant = (half_b * half_b) - (a * c);
+        let discriminant = (half_b * half_b) - (a * c) + f64::EPSILON;
 
         if discriminant >= 0.0 {
             let sqrtd = discriminant.sqrt();

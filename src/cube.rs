@@ -75,15 +75,16 @@ impl Hittable for Cube {
         let p = r.at(t);
 
         // Determine the outward normal based on the intersection point
-        let outward_normal = if (p.x() - max_bound.x()).abs() < f64::EPSILON {
+        let tolerance = 1e-8;
+        let outward_normal = if (p.x() - max_bound.x()).abs() < tolerance {
             Vec3::new(1.0, 0.0, 0.0)
-        } else if (p.x() - min_bound.x()).abs() < f64::EPSILON {
+        } else if (p.x() - min_bound.x()).abs() < tolerance {
             Vec3::new(-1.0, 0.0, 0.0)
-        } else if (p.y() - max_bound.y()).abs() < f64::EPSILON {
+        } else if (p.y() - max_bound.y()).abs() < tolerance {
             Vec3::new(0.0, 1.0, 0.0)
-        } else if (p.y() - min_bound.y()).abs() < f64::EPSILON {
+        } else if (p.y() - min_bound.y()).abs() < tolerance {
             Vec3::new(0.0, -1.0, 0.0)
-        } else if (p.z() - max_bound.z()).abs() < f64::EPSILON {
+        } else if (p.z() - max_bound.z()).abs() < tolerance {
             Vec3::new(0.0, 0.0, 1.0)
         } else {
             Vec3::new(0.0, 0.0, -1.0)

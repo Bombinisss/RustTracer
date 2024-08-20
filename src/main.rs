@@ -1,4 +1,5 @@
 mod aabb;
+mod bvh;
 mod camera;
 mod color;
 mod cube;
@@ -9,8 +10,8 @@ mod shapes;
 mod sphere;
 mod utils;
 mod vec3;
-mod bvh;
 
+use crate::bvh::BvhNode;
 use crate::camera::Camera;
 use crate::cube::Cube;
 use crate::hittables::HittableList;
@@ -22,7 +23,6 @@ use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
 use std::time::Instant;
-use crate::bvh::BvhNode;
 
 fn main() {
     /* World */
