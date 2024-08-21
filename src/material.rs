@@ -1,7 +1,9 @@
 use crate::hittables::HitRecord;
 use crate::ray::Ray;
+use crate::textures::{SolidColor, Texture};
 use crate::utils::random_double;
 use crate::vec3::Vec3;
+use std::sync::Arc;
 
 pub trait Scatterable {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)>;
@@ -23,11 +25,16 @@ impl Scatterable for Material {
 }
 #[derive(Clone)]
 pub struct Lambertian {
-    albedo: Vec3,
+    texture: Arc<dyn Texture>,
 }
 impl Lambertian {
-    pub fn new(albedo: Vec3) -> Self {
-        Lambertian { albedo }
+    pub fn new(albedo: Vec3) -> Lambertian {
+        let texture = Arc::new(SolidColor::new(albedo));
+        Lambertian { texture }
+    }
+
+    pub fn new_from_texture(texture: Arc<dyn Texture>) -> Lambertian {
+        Lambertian { texture }
     }
 }
 impl Scatterable for Lambertian {
@@ -39,7 +46,7 @@ impl Scatterable for Lambertian {
         }
 
         let scattered = Ray::new(rec.p, scatter_direction);
-        let attenuation = self.albedo;
+        let attenuation = self.texture.value(/*rec.u, rec.v,*/ rec.p);
         Some((Some(scattered), attenuation))
     }
 }

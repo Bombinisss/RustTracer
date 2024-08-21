@@ -18,6 +18,8 @@ pub struct HitRecord<'material> {
     pub t: f64,
     pub front_face: bool,
     pub material: &'material Material,
+    //pub u: f64,
+    //pub v: f64,
 }
 
 impl<'material> HitRecord<'material> {

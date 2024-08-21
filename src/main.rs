@@ -8,9 +8,9 @@ mod material;
 mod ray;
 mod shapes;
 mod sphere;
+mod textures;
 mod utils;
 mod vec3;
-mod texture;
 
 use crate::bvh::BvhNode;
 use crate::camera::Camera;
@@ -19,21 +19,25 @@ use crate::hittables::HittableList;
 use crate::material::{Dielectric, Lambertian, Material, Metal};
 use crate::shapes::Cuboid;
 use crate::sphere::Sphere;
+use crate::textures::{CheckerTexture, Texture};
 use crate::utils::{random_double, random_double_range};
 use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
-use std::time::Instant;
 
 fn main() {
     /* World */
     let mut world = HittableList::new();
 
-    let ground_material = Material::Lambertian(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
+    let checker: Arc<dyn Texture> = Arc::new(CheckerTexture::new_from_rgb(
+        0.32,
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ));
     world.add(Arc::new(Shapes::Sphere(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        ground_material,
+        Material::Lambertian(Lambertian::new_from_texture(checker)),
     ))));
 
     for a in -11..11 {
@@ -90,8 +94,7 @@ fn main() {
                 } else if choose_mat < 0.85 {
                     // glass sphere
                     let refraction_index = random_double_range(0.0, 2.0);
-                    let sphere_material =
-                        Material::Dielectric(Dielectric::new(refraction_index));
+                    let sphere_material = Material::Dielectric(Dielectric::new(refraction_index));
                     world.add(Arc::new(Shapes::Sphere(Sphere::new(
                         center,
                         0.2,
@@ -139,7 +142,5 @@ fn main() {
         10.0,
     );
 
-    let start = Instant::now();
     cam.render(&bvh_node);
-    println!("Frame time: {}sec", start.elapsed().as_secs_f32());
 }
