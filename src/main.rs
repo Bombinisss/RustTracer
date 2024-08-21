@@ -10,6 +10,7 @@ mod shapes;
 mod sphere;
 mod utils;
 mod vec3;
+mod texture;
 
 use crate::bvh::BvhNode;
 use crate::camera::Camera;
@@ -90,7 +91,7 @@ fn main() {
                     // glass sphere
                     let refraction_index = random_double_range(0.0, 2.0);
                     let sphere_material =
-                        material::Material::Dielectric(Dielectric::new(refraction_index));
+                        Material::Dielectric(Dielectric::new(refraction_index));
                     world.add(Arc::new(Shapes::Sphere(Sphere::new(
                         center,
                         0.2,

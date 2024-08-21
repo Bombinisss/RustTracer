@@ -3,6 +3,7 @@ use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
 use crate::utils::Interval;
 use std::sync::Arc;
+use crate::shapes::Shapes;
 
 pub struct BvhNode {
     left: Arc<dyn Hittable>,
@@ -15,7 +16,7 @@ impl BvhNode {
         BvhNode::new(list.objects.clone(), 0, list.objects.len())
     }
 
-    pub fn new(objects: Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> BvhNode {
+    pub fn new(objects: Vec<Arc<Shapes>>, start: usize, end: usize) -> BvhNode {
         // Build the bounding box of the span of source objects
         let mut bbox = Aabb::EMPTY;
         for i in start..end {
@@ -26,23 +27,23 @@ impl BvhNode {
         let axis = bbox.longest_axis();
 
         // Define comparators based on the axis
-        let comparator: Box<dyn Fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> std::cmp::Ordering> =
+        let comparator: Box<dyn Fn(&Arc<Shapes>, &Arc<Shapes>) -> std::cmp::Ordering> =
             match axis {
-                0 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                0 => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
                     a.bounding_box()
                         .axis_interval(axis)
                         .min
                         .partial_cmp(&b.bounding_box().axis_interval(axis).min)
                         .unwrap()
                 }),
-                1 => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                1 => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
                     a.bounding_box()
                         .axis_interval(axis)
                         .min
                         .partial_cmp(&b.bounding_box().axis_interval(axis).min)
                         .unwrap()
                 }),
-                _ => Box::new(|a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>| {
+                _ => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
                     a.bounding_box()
                         .axis_interval(axis)
                         .min

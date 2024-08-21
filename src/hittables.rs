@@ -51,7 +51,7 @@ impl<'material> HitRecord<'material> {
 }
 
 pub struct HittableList {
-    pub objects: Vec<Arc<dyn Hittable>>,
+    pub objects: Vec<Arc<Shapes>>,
     bbox: Aabb,
 }
 
