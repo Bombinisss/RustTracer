@@ -112,7 +112,7 @@ fn main() {
         material1,
     ))));
 
-    let material2 = Material::Lambertian(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
+    let material2 = Material::Lambertian(Lambertian::new(Vec3::new(1.2, 0.43, 0.1)));
     world.add(Arc::new(Shapes::Sphere(Sphere::new(
         Vec3::new(-4.0, 1.0, 0.0),
         1.0,
