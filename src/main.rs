@@ -25,19 +25,19 @@ use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
 
-fn main() {
-    /* World */
+fn spheres_and_cubes(){
     let mut world = HittableList::new();
 
-    let checker: Arc<dyn Texture> = Arc::new(CheckerTexture::new_from_rgb(
+    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(CheckerTexture::new_from_rgb(
         0.32,
         Vec3::new(0.2, 0.3, 0.1),
         Vec3::new(0.9, 0.9, 0.9),
-    ));
+    ))));
+    
     world.add(Arc::new(Shapes::Sphere(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Material::Lambertian(Lambertian::new_from_texture(checker)),
+        checker,
     ))));
 
     for a in -11..11 {
@@ -143,4 +143,53 @@ fn main() {
     );
 
     cam.render(&bvh_node);
+}
+
+fn checkered_spheres() {
+    let mut world = HittableList::new();
+
+    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(CheckerTexture::new_from_rgb(
+        0.32,
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ))));
+
+    world.add(Arc::new(Shapes::Sphere(Sphere::new(
+        Vec3::new(0.0, -10.0, 0.0),
+        10.0,
+        checker.clone(),
+    ))));
+
+    world.add(Arc::new(Shapes::Sphere(Sphere::new(
+        Vec3::new(0.0, 10.0, 0.0),
+        10.0,
+        checker,
+    ))));
+    
+    let bvh_node = BvhNode::new_from_list(&world);
+
+    /* Camera */
+    let cam: Camera = Camera::new(
+        16.0 / 9.0,
+        1200.0,
+        500,
+        50,
+        20.0,
+        Vec3::new(13.0, 2.0, 3.0),
+        Vec3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        0.0,
+        10.0,
+    );
+    
+    cam.render(&bvh_node);
+}
+
+fn main() {
+    let num = 2;
+    match num{
+        1=>spheres_and_cubes(),
+        2=>checkered_spheres(),
+        _ => {}
+    }
 }
