@@ -182,7 +182,7 @@ fn checkered_spheres() {
 }
 
 fn main() {
-    let num = 2;
+    let num = 1;
     match num {
         1 => spheres_and_cubes(),
         2 => checkered_spheres(),

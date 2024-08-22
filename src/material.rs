@@ -46,7 +46,7 @@ impl Scatterable for Lambertian {
         }
 
         let scattered = Ray::new(rec.p, scatter_direction);
-        let attenuation = self.texture.value(/*rec.u, rec.v,*/ rec.p);
+        let attenuation = self.texture.value(rec.u, rec.v, rec.p);
         Some((Some(scattered), attenuation))
     }
 }

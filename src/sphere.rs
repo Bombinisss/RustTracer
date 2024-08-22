@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
@@ -24,6 +25,23 @@ impl Sphere {
             bbox,
         }
     }
+
+    fn get_sphere_uv(p: Vec3) -> (f64, f64) {
+        // p: a given point on the sphere of radius one, centered at the origin.
+        // u: returned value [0,1] of angle around the Y axis from X=-1.
+        // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+        //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+        //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+        //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+        let theta = f64::acos(-p.y());
+        let phi = f64::atan2(-p.z(), p.x()) + PI;
+
+        let u = phi / (2.0*PI);
+        let v = theta / PI;
+
+        (u, v)
+    }
 }
 
 impl Hittable for Sphere {
@@ -41,15 +59,18 @@ impl Hittable for Sphere {
             for root in [root_a, root_b].iter() {
                 if *root < ray_t.max && *root > ray_t.min {
                     let p = ray.at(*root);
-                    let normal = (p - self.center) / self.radius;
-                    let front_face = ray.direction.dot(&normal) < 0.0;
-
+                    let outward_normal = (p - self.center) / self.radius;
+                    let front_face = ray.direction.dot(&outward_normal) < 0.0;
+                    let (u,v) = Sphere::get_sphere_uv(outward_normal);
+                    
                     return Some(HitRecord {
                         t: *root,
                         p,
-                        normal: if front_face { normal } else { -normal },
+                        normal: if front_face { outward_normal } else { -outward_normal },
                         front_face,
                         material: &self.material,
+                        u,
+                        v,
                     });
                 }
             }

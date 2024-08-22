@@ -18,8 +18,8 @@ pub struct HitRecord<'material> {
     pub t: f64,
     pub front_face: bool,
     pub material: &'material Material,
-    //pub u: f64,
-    //pub v: f64,
+    pub u: f64,
+    pub v: f64,
 }
 
 impl<'material> HitRecord<'material> {
@@ -41,6 +41,8 @@ impl<'material> HitRecord<'material> {
         t: f64,
         front_face: bool,
         material: &'material Material,
+        u: f64,
+        v: f64,
     ) -> Self {
         Self {
             p,
@@ -48,6 +50,8 @@ impl<'material> HitRecord<'material> {
             t,
             front_face,
             material,
+            u,
+            v,
         }
     }
 }
