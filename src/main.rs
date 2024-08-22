@@ -19,21 +19,19 @@ use crate::hittables::HittableList;
 use crate::material::{Dielectric, Lambertian, Material, Metal};
 use crate::shapes::Cuboid;
 use crate::sphere::Sphere;
-use crate::textures::{CheckerTexture, Texture};
+use crate::textures::CheckerTexture;
 use crate::utils::{random_double, random_double_range};
 use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
 
-fn spheres_and_cubes(){
+fn spheres_and_cubes() {
     let mut world = HittableList::new();
 
-    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(CheckerTexture::new_from_rgb(
-        0.32,
-        Vec3::new(0.2, 0.3, 0.1),
-        Vec3::new(0.9, 0.9, 0.9),
-    ))));
-    
+    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(
+        CheckerTexture::new_from_rgb(0.32, Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9)),
+    )));
+
     world.add(Arc::new(Shapes::Sphere(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -148,11 +146,9 @@ fn spheres_and_cubes(){
 fn checkered_spheres() {
     let mut world = HittableList::new();
 
-    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(CheckerTexture::new_from_rgb(
-        0.32,
-        Vec3::new(0.2, 0.3, 0.1),
-        Vec3::new(0.9, 0.9, 0.9),
-    ))));
+    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(
+        CheckerTexture::new_from_rgb(0.32, Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9)),
+    )));
 
     world.add(Arc::new(Shapes::Sphere(Sphere::new(
         Vec3::new(0.0, -10.0, 0.0),
@@ -165,7 +161,7 @@ fn checkered_spheres() {
         10.0,
         checker,
     ))));
-    
+
     let bvh_node = BvhNode::new_from_list(&world);
 
     /* Camera */
@@ -181,15 +177,15 @@ fn checkered_spheres() {
         0.0,
         10.0,
     );
-    
+
     cam.render(&bvh_node);
 }
 
 fn main() {
     let num = 2;
-    match num{
-        1=>spheres_and_cubes(),
-        2=>checkered_spheres(),
+    match num {
+        1 => spheres_and_cubes(),
+        2 => checkered_spheres(),
         _ => {}
     }
 }
