@@ -1,3 +1,5 @@
+use crate::image::Image;
+use crate::utils::Interval;
 use crate::vec3::Vec3;
 use std::sync::Arc;
 
@@ -30,7 +32,11 @@ pub struct CheckerTexture {
 impl CheckerTexture {
     pub fn new(inv_scale: f64, even: Arc<dyn Texture>, odd: Arc<dyn Texture>) -> CheckerTexture {
         let inv_scale = 1.0 / inv_scale;
-        CheckerTexture { inv_scale, even, odd }
+        CheckerTexture {
+            inv_scale,
+            even,
+            odd,
+        }
     }
 
     pub fn new_from_rgb(inv_scale: f64, c1: Vec3, c2: Vec3) -> CheckerTexture {
@@ -38,7 +44,11 @@ impl CheckerTexture {
         let even = Arc::new(SolidColor::new(c1));
         let odd = Arc::new(SolidColor::new(c2));
 
-        CheckerTexture { inv_scale, even, odd }
+        CheckerTexture {
+            inv_scale,
+            even,
+            odd,
+        }
     }
 }
 
@@ -55,5 +65,34 @@ impl Texture for CheckerTexture {
         } else {
             self.odd.value(u, v, p)
         }
+    }
+}
+
+pub struct ImageTexture {
+    image: Image,
+}
+
+impl ImageTexture {
+    pub fn new(filename: &str) -> ImageTexture {
+        let image = Image::new(filename).expect("");
+        ImageTexture { image }
+    }
+}
+
+impl Texture for ImageTexture {
+    fn value(&self, mut u: f64, mut v: f64, _p: Vec3) -> Vec3 {
+        u = Interval::new(0.0, 1.0).clamp(u);
+        v = 1.0 - Interval::new(0.0, 1.0).clamp(v);
+
+        let i = (u * (self.image.width) as f64) as i32;
+        let j = (v * (self.image.height) as f64) as i32;
+        let pixel = self.image.pixel_data(i, j);
+
+        let color_scale = 1.0 / 255.0;
+        Vec3::new(
+            color_scale * pixel.0 as f64,
+            color_scale * pixel.1 as f64,
+            color_scale * pixel.2 as f64,
+        )
     }
 }
