@@ -114,8 +114,8 @@ fn spheres_and_cubes() {
     let earth_texture = Arc::new(ImageTexture::new("earthmap.jpg"));
     let earth_surface = Material::Lambertian(Lambertian::new_from_texture(earth_texture));
     world.add(Arc::new(Shapes::Sphere(Sphere::new(
-        Vec3::new(-4.0, 1.0, 0.0),
-        1.0,
+        Vec3::new(-5.0, 1.0, 0.0),
+        2.0,
         earth_surface,
     ))));
 
