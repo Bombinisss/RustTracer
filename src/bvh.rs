@@ -1,9 +1,9 @@
 use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable, HittableList};
 use crate::ray::Ray;
+use crate::shapes::Shapes;
 use crate::utils::Interval;
 use std::sync::Arc;
-use crate::shapes::Shapes;
 
 pub struct BvhNode {
     left: Arc<dyn Hittable>,
@@ -27,30 +27,29 @@ impl BvhNode {
         let axis = bbox.longest_axis();
 
         // Define comparators based on the axis
-        let comparator: Box<dyn Fn(&Arc<Shapes>, &Arc<Shapes>) -> std::cmp::Ordering> =
-            match axis {
-                0 => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
-                    a.bounding_box()
-                        .axis_interval(axis)
-                        .min
-                        .partial_cmp(&b.bounding_box().axis_interval(axis).min)
-                        .unwrap()
-                }),
-                1 => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
-                    a.bounding_box()
-                        .axis_interval(axis)
-                        .min
-                        .partial_cmp(&b.bounding_box().axis_interval(axis).min)
-                        .unwrap()
-                }),
-                _ => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
-                    a.bounding_box()
-                        .axis_interval(axis)
-                        .min
-                        .partial_cmp(&b.bounding_box().axis_interval(axis).min)
-                        .unwrap()
-                }),
-            };
+        let comparator: Box<dyn Fn(&Arc<Shapes>, &Arc<Shapes>) -> std::cmp::Ordering> = match axis {
+            0 => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
+                a.bounding_box()
+                    .axis_interval(axis)
+                    .min
+                    .partial_cmp(&b.bounding_box().axis_interval(axis).min)
+                    .unwrap()
+            }),
+            1 => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
+                a.bounding_box()
+                    .axis_interval(axis)
+                    .min
+                    .partial_cmp(&b.bounding_box().axis_interval(axis).min)
+                    .unwrap()
+            }),
+            _ => Box::new(|a: &Arc<Shapes>, b: &Arc<Shapes>| {
+                a.bounding_box()
+                    .axis_interval(axis)
+                    .min
+                    .partial_cmp(&b.bounding_box().axis_interval(axis).min)
+                    .unwrap()
+            }),
+        };
 
         let object_span = end - start;
 

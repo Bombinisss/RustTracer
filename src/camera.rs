@@ -133,7 +133,7 @@ impl Camera {
         print!("\rRendering: [{}] 100.00% - Done! ", "=".repeat(50));
         io::stdout().flush().unwrap();
         println!("Frame time: {}sec", start_time.elapsed().as_secs_f32());
-        
+
         // Write the header to a file after rendering is complete.
         writeln!(
             &self.file.try_clone().expect("REASON"),

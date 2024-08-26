@@ -32,29 +32,34 @@ impl Cube {
         let v: f64;
 
         // Determine which face the point is on and compute UV coordinates
-        if z > 0.0 { // Front face
+        if z > 0.0 {
+            // Front face
             u = (x + half_size) / (2.0 * half_size);
             v = (y + half_size) / (2.0 * half_size);
-        } else if z < 0.0 { // Back face
+        } else if z < 0.0 {
+            // Back face
             u = (x + half_size) / (2.0 * half_size);
             v = (half_size - (y + half_size)) / (2.0 * half_size);
-        } else if y > 0.0 { // Top face
+        } else if y > 0.0 {
+            // Top face
             u = (x + half_size) / (2.0 * half_size);
             v = (half_size - (z + half_size)) / (2.0 * half_size);
-        } else if y < 0.0 { // Bottom face
+        } else if y < 0.0 {
+            // Bottom face
             u = (x + half_size) / (2.0 * half_size);
             v = (y + half_size) / (2.0 * half_size);
-        } else if x > 0.0 { // Right face
+        } else if x > 0.0 {
+            // Right face
             u = (half_size - (z + half_size)) / (2.0 * half_size);
             v = (y + half_size) / (2.0 * half_size);
-        } else { // Left face
+        } else {
+            // Left face
             u = (z + half_size) / (2.0 * half_size);
             v = (y + half_size) / (2.0 * half_size);
         }
 
         (u, v)
     }
-
 }
 
 impl Hittable for Cube {
@@ -121,8 +126,8 @@ impl Hittable for Cube {
             Vec3::new(0.0, 0.0, -1.0)
         };
 
-        let (u,v) = Cube::get_cube_uv(p, half_size);
-        
+        let (u, v) = Cube::get_cube_uv(p, half_size);
+
         // Create the hit record
         let mut rec = HitRecord {
             p,

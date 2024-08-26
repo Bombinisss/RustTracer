@@ -4,6 +4,7 @@ mod camera;
 mod color;
 mod cube;
 mod hittables;
+mod image;
 mod material;
 mod ray;
 mod shapes;
@@ -11,7 +12,6 @@ mod sphere;
 mod textures;
 mod utils;
 mod vec3;
-mod image;
 
 use crate::bvh::BvhNode;
 use crate::camera::Camera;

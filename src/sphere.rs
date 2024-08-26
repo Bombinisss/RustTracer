@@ -1,10 +1,10 @@
-use std::f64::consts::PI;
 use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
+use std::f64::consts::PI;
 
 pub struct Sphere {
     center: Vec3,
@@ -37,7 +37,7 @@ impl Sphere {
         let theta = f64::acos(-p.y());
         let phi = f64::atan2(-p.z(), p.x()) + PI;
 
-        let u = phi / (2.0*PI);
+        let u = phi / (2.0 * PI);
         let v = theta / PI;
 
         (u, v)
@@ -61,12 +61,16 @@ impl Hittable for Sphere {
                     let p = ray.at(*root);
                     let outward_normal = (p - self.center) / self.radius;
                     let front_face = ray.direction.dot(&outward_normal) < 0.0;
-                    let (u,v) = Sphere::get_sphere_uv(outward_normal);
-                    
+                    let (u, v) = Sphere::get_sphere_uv(outward_normal);
+
                     return Some(HitRecord {
                         t: *root,
                         p,
-                        normal: if front_face { outward_normal } else { -outward_normal },
+                        normal: if front_face {
+                            outward_normal
+                        } else {
+                            -outward_normal
+                        },
                         front_face,
                         material: &self.material,
                         u,

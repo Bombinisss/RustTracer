@@ -1,5 +1,5 @@
-use std::path::Path;
 use stb_image::image::{self, LoadResult};
+use std::path::Path;
 
 pub struct Image {
     pub width: i32,
@@ -12,7 +12,7 @@ impl Image {
         let current_dir = std::env::current_dir().unwrap();
         let relative_path = Path::new("images").join(filename);
         let full_path = current_dir.join(relative_path);
-        
+
         let image = image::load_with_depth(full_path, 3, false); // Load as RGB with 3 channels
 
         match image {
