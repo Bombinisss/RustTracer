@@ -24,6 +24,7 @@ use crate::utils::{random_double, random_double_range};
 use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
+use crate::shapes::Cuboid;
 
 fn spheres_and_cubes() {
     let mut world = HittableList::new();
@@ -121,9 +122,9 @@ fn spheres_and_cubes() {
     //let material3 = Material::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.01));
     let test_texture = Arc::new(ImageTexture::new("moon.png"));
     let test_surface = Material::Lambertian(Lambertian::new_from_texture(test_texture));
-    world.add(Arc::new(Shapes::Cube(Cube::new(
+    world.add(Arc::new(Shapes::Cuboid(Cuboid::new(
         Vec3::new(4.5, 1.0, -0.3),
-        1.4,
+        Vec3::new(4.0, 2.0, 1.0),
         test_surface,
     ))));
 

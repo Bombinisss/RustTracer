@@ -2,7 +2,7 @@ use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::utils::Interval;
+use crate::utils::{map_uv_to_range, Interval};
 use crate::vec3::Vec3;
 use crate::{cube, sphere};
 
@@ -54,9 +54,57 @@ impl Cuboid {
         }
     }
 
-    fn get_cuboid_uv(_p: Vec3, _dimensions: Vec3) -> (f64, f64) {
-        //TODO
-        (0.26, 0.35)
+    fn get_cuboid_uv(p_relative_to_center: Vec3, dimensions: Vec3) -> (f64, f64) {
+        // Define UV ranges for each face of the cuboid
+        let top_uv_range = ((0.25, 0.666666), (0.5, 1.0));
+        let bottom_uv_range = ((0.25, 0.0), (0.5, 0.333333));
+        let left_uv_range = ((0.0, 0.333333), (0.25, 0.666666));
+        let right_uv_range = ((0.5, 0.333333), (0.75, 0.666666));
+        let front_uv_range = ((0.25, 0.333333), (0.5, 0.666666));
+        let back_uv_range = ((0.75, 0.333333), (1.0, 0.666666));
+
+        // Dimensions
+        let half_width = dimensions.x() / 2.0;
+        let half_height = dimensions.y() / 2.0;
+        let half_depth = dimensions.z() / 2.0;
+
+        // Tolerance to handle floating-point precision issues
+        let tolerance = 1e-8;
+
+        // Face mapping and UV calculation
+        if (p_relative_to_center.x() - half_width).abs() < tolerance {
+            // Right face
+            let u = 1.0 - (p_relative_to_center.z() + half_depth) / dimensions.z();
+            let v = (p_relative_to_center.y() + half_height) / dimensions.y();
+            map_uv_to_range(u, v, &right_uv_range)
+        } else if (p_relative_to_center.x() + half_width).abs() < tolerance {
+            // Left face
+            let u = (p_relative_to_center.z() + half_depth) / dimensions.z();
+            let v = (p_relative_to_center.y() + half_height) / dimensions.y();
+            map_uv_to_range(u, v, &left_uv_range)
+        } else if (p_relative_to_center.y() - half_height).abs() < tolerance {
+            // Top face
+            let u = (p_relative_to_center.x() + half_width) / dimensions.x();
+            let v = 1.0 - (p_relative_to_center.z() + half_depth) / dimensions.z();
+            map_uv_to_range(u, v, &top_uv_range)
+        } else if (p_relative_to_center.y() + half_height).abs() < tolerance {
+            // Bottom face
+            let u = (p_relative_to_center.x() + half_width) / dimensions.x();
+            let v = (p_relative_to_center.z() + half_depth) / dimensions.z();
+            map_uv_to_range(u, v, &bottom_uv_range)
+        } else if (p_relative_to_center.z() - half_depth).abs() < tolerance {
+            // Front face
+            let u = (p_relative_to_center.x() + half_width) / dimensions.x();
+            let v = (p_relative_to_center.y() + half_height) / dimensions.y();
+            map_uv_to_range(u, v, &front_uv_range)
+        } else if (p_relative_to_center.z() + half_depth).abs() < tolerance {
+            // Back face
+            let u = (p_relative_to_center.x() + half_width) / dimensions.x();
+            let v = (p_relative_to_center.y() + half_height) / dimensions.y();
+            map_uv_to_range(u, v, &back_uv_range)
+        } else {
+            (0.0, 0.0)
+        }
     }
 }
 
@@ -123,7 +171,8 @@ impl Hittable for Cuboid {
             Vec3::new(0.0, 0.0, -1.0)
         };
 
-        let (u, v) = Cuboid::get_cuboid_uv(p, self.dimensions);
+        let p_relative_to_center = p - self.center;
+        let (u, v) = Cuboid::get_cuboid_uv(p_relative_to_center, self.dimensions);
 
         let mut rec = HitRecord {
             p,

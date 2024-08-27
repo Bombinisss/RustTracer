@@ -2,7 +2,7 @@ use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::utils::Interval;
+use crate::utils::{map_uv_to_range, Interval};
 use crate::vec3::Vec3;
 
 pub struct Cube {
@@ -42,51 +42,35 @@ impl Cube {
             // Right face
             let u = 1.0 - (p_relative_to_center.z() + half_size) / (2.0 * half_size);
             let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
-            Cube::map_uv_to_range(u, v, &right_uv_range)
+            map_uv_to_range(u, v, &right_uv_range)
         } else if (p_relative_to_center.x() + half_size).abs() < tolerance {
             // Left face
             let u = (p_relative_to_center.z() + half_size) / (2.0 * half_size);
             let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
-            Cube::map_uv_to_range(u, v, &left_uv_range)
+            map_uv_to_range(u, v, &left_uv_range)
         } else if (p_relative_to_center.y() - half_size).abs() < tolerance {
             // Top face
             let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
             let v = 1.0 - (p_relative_to_center.z() + half_size) / (2.0 * half_size);
-            Cube::map_uv_to_range(u, v, &top_uv_range)
+            map_uv_to_range(u, v, &top_uv_range)
         } else if (p_relative_to_center.y() + half_size).abs() < tolerance {
             // Bottom face
             let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
             let v = (p_relative_to_center.z() + half_size) / (2.0 * half_size);
-            Cube::map_uv_to_range(u, v, &bottom_uv_range)
+            map_uv_to_range(u, v, &bottom_uv_range)
         } else if (p_relative_to_center.z() - half_size).abs() < tolerance {
             // Front face
             let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
             let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
-            Cube::map_uv_to_range(u, v, &front_uv_range)
+            map_uv_to_range(u, v, &front_uv_range)
         } else if (p_relative_to_center.z() + half_size).abs() < tolerance {
             // Back face
             let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
             let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
-            Cube::map_uv_to_range(u, v, &back_uv_range)
+            map_uv_to_range(u, v, &back_uv_range)
         } else {
             (0.0, 0.0)
         }
-    }
-
-    // Maps normalized UV coordinates to the specified UV range for a face
-    fn map_uv_to_range(u: f64, v: f64, uv_range: &((f64, f64), (f64, f64))) -> (f64, f64) {
-        let (u_min, v_min) = uv_range.0;
-        let (u_max, v_max) = uv_range.1;
-
-        // Normalize UV coordinates to the range [0, 1]
-        let u_normalized = u;
-        let v_normalized = v;
-
-        // Map to the specified UV range
-        let u_mapped = u_min + (u_normalized * (u_max - u_min));
-        let v_mapped = v_min + (v_normalized * (v_max - v_min));
-
-        (u_mapped, v_mapped)
     }
 }
 

@@ -18,6 +18,22 @@ pub fn _random_int_range(min: i32, max: i32) -> i32 {
     random_double_range((min) as f64, (max + 1) as f64) as i32
 }
 
+// Maps normalized UV coordinates to the specified UV range for a face
+pub fn map_uv_to_range(u: f64, v: f64, uv_range: &((f64, f64), (f64, f64))) -> (f64, f64) {
+    let (u_min, v_min) = uv_range.0;
+    let (u_max, v_max) = uv_range.1;
+
+    // Normalize UV coordinates to the range [0, 1]
+    let u_normalized = u;
+    let v_normalized = v;
+
+    // Map to the specified UV range
+    let u_mapped = u_min + (u_normalized * (u_max - u_min));
+    let v_mapped = v_min + (v_normalized * (v_max - v_min));
+
+    (u_mapped, v_mapped)
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Interval {
     pub min: f64,
