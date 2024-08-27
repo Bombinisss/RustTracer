@@ -142,6 +142,7 @@ fn spheres_and_cubes() {
         Vec3::new(0.0, 1.0, 0.0),
         0.6,
         10.0,
+        "out.ppm",
     );
 
     cam.render(&bvh_node);
@@ -180,6 +181,7 @@ fn checkered_spheres() {
         Vec3::new(0.0, 1.0, 0.0),
         0.0,
         10.0,
+        "out.ppm",
     );
 
     cam.render(&bvh_node);
@@ -211,6 +213,7 @@ fn earth() {
         Vec3::new(0.0, 1.0, 0.0),
         0.0,
         10.0,
+        "out.ppm",
     );
 
     cam.render(&bvh_node);

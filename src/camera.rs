@@ -199,8 +199,9 @@ impl Camera {
         vup: Vec3,
         defocus_angle: f64,
         focus_dist: f64,
+        file_name: &str
     ) -> Self {
-        let file = File::create("test.ppm").unwrap();
+        let file = File::create(file_name).unwrap();
 
         let mut image_height = image_width / aspect_ratio;
         if image_height < 1.0 {
