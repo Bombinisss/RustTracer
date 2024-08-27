@@ -5,3 +5,5 @@
 Multithreaded ray tracing. Runs on all CPU cores.
 
 ![out3](https://github.com/user-attachments/assets/8c2f76ee-cf0f-4771-829b-0b5ea7507217)
+
+![out](https://github.com/user-attachments/assets/fec5f14a-51f4-4c29-8b7c-60da7fe47f7f)
