@@ -54,41 +54,9 @@ impl Cuboid {
         }
     }
 
-    fn get_cuboid_uv(p: Vec3, dimensions: Vec3) -> (f64, f64) {
-        let (x, y, z) = (p.x(), p.y(), p.z());
-        let half_dimensions = dimensions / 2.0;
-
-        let u: f64;
-        let v: f64;
-
-        // Determine which face the point is on and compute UV coordinates
-        if z > 0.0 && (z - half_dimensions.z()).abs() < f64::EPSILON {
-            // Front face
-            u = (x + half_dimensions.x()) / dimensions.x();
-            v = (y + half_dimensions.y()) / dimensions.y();
-        } else if z < 0.0 && (z + half_dimensions.z()).abs() < f64::EPSILON {
-            // Back face
-            u = (x + half_dimensions.x()) / dimensions.x();
-            v = (half_dimensions.y() - (y + half_dimensions.y())) / dimensions.y();
-        } else if y > 0.0 && (y - half_dimensions.y()).abs() < f64::EPSILON {
-            // Top face
-            u = (x + half_dimensions.x()) / dimensions.x();
-            v = (half_dimensions.z() - (z + half_dimensions.z())) / dimensions.z();
-        } else if y < 0.0 && (y + half_dimensions.y()).abs() < f64::EPSILON {
-            // Bottom face
-            u = (x + half_dimensions.x()) / dimensions.x();
-            v = (y + half_dimensions.y()) / dimensions.y();
-        } else if x > 0.0 && (x - half_dimensions.x()).abs() < f64::EPSILON {
-            // Right face
-            u = (half_dimensions.z() - (z + half_dimensions.z())) / dimensions.z();
-            v = (y + half_dimensions.y()) / dimensions.y();
-        } else {
-            // Left face
-            u = (z + half_dimensions.z()) / dimensions.z();
-            v = (y + half_dimensions.y()) / dimensions.y();
-        }
-
-        (u, v)
+    fn get_cuboid_uv(_p: Vec3, _dimensions: Vec3) -> (f64, f64) {
+        //TODO
+        (0.26, 0.35)
     }
 }
 

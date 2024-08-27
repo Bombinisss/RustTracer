@@ -25,40 +25,68 @@ impl Cube {
         }
     }
 
-    fn get_cube_uv(p: Vec3, half_size: f64) -> (f64, f64) {
-        let (x, y, z) = (p.x(), p.y(), p.z());
+    fn get_cube_uv(p_relative_to_center: Vec3, half_size: f64) -> (f64, f64) {
+        // Define UV ranges for each face
+        let top_uv_range = ((0.25, 0.666666), (0.5, 1.0));
+        let bottom_uv_range = ((0.25, 0.0), (0.5, 0.333333));
+        let left_uv_range = ((0.0, 0.333333), (0.25, 0.666666));
+        let right_uv_range = ((0.5, 0.333333), (0.75, 0.666666));
+        let front_uv_range = ((0.25, 0.333333), (0.5, 0.666666));
+        let back_uv_range = ((0.75, 0.333333), (1.0, 0.666666));
 
-        let u: f64;
-        let v: f64;
+        // Tolerance to handle floating-point precision issues
+        let tolerance = 1e-8;
 
-        // Determine which face the point is on and compute UV coordinates
-        if z > 0.0 {
-            // Front face
-            u = (x + half_size) / (2.0 * half_size);
-            v = (y + half_size) / (2.0 * half_size);
-        } else if z < 0.0 {
-            // Back face
-            u = (x + half_size) / (2.0 * half_size);
-            v = (half_size - (y + half_size)) / (2.0 * half_size);
-        } else if y > 0.0 {
-            // Top face
-            u = (x + half_size) / (2.0 * half_size);
-            v = (half_size - (z + half_size)) / (2.0 * half_size);
-        } else if y < 0.0 {
-            // Bottom face
-            u = (x + half_size) / (2.0 * half_size);
-            v = (y + half_size) / (2.0 * half_size);
-        } else if x > 0.0 {
+        // Face mapping and UV calculation
+        if (p_relative_to_center.x() - half_size).abs() < tolerance {
             // Right face
-            u = (half_size - (z + half_size)) / (2.0 * half_size);
-            v = (y + half_size) / (2.0 * half_size);
-        } else {
+            let u = 1.0 - (p_relative_to_center.z() + half_size) / (2.0 * half_size);
+            let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
+            Cube::map_uv_to_range(u, v, &right_uv_range)
+        } else if (p_relative_to_center.x() + half_size).abs() < tolerance {
             // Left face
-            u = (z + half_size) / (2.0 * half_size);
-            v = (y + half_size) / (2.0 * half_size);
+            let u = (p_relative_to_center.z() + half_size) / (2.0 * half_size);
+            let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
+            Cube::map_uv_to_range(u, v, &left_uv_range)
+        } else if (p_relative_to_center.y() - half_size).abs() < tolerance {
+            // Top face
+            let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
+            let v = 1.0 - (p_relative_to_center.z() + half_size) / (2.0 * half_size);
+            Cube::map_uv_to_range(u, v, &top_uv_range)
+        } else if (p_relative_to_center.y() + half_size).abs() < tolerance {
+            // Bottom face
+            let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
+            let v = (p_relative_to_center.z() + half_size) / (2.0 * half_size);
+            Cube::map_uv_to_range(u, v, &bottom_uv_range)
+        } else if (p_relative_to_center.z() - half_size).abs() < tolerance {
+            // Front face
+            let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
+            let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
+            Cube::map_uv_to_range(u, v, &front_uv_range)
+        } else if (p_relative_to_center.z() + half_size).abs() < tolerance {
+            // Back face
+            let u = (p_relative_to_center.x() + half_size) / (2.0 * half_size);
+            let v = (p_relative_to_center.y() + half_size) / (2.0 * half_size);
+            Cube::map_uv_to_range(u, v, &back_uv_range)
+        } else {
+            (0.0, 0.0)
         }
+    }
 
-        (u, v)
+    // Maps normalized UV coordinates to the specified UV range for a face
+    fn map_uv_to_range(u: f64, v: f64, uv_range: &((f64, f64), (f64, f64))) -> (f64, f64) {
+        let (u_min, v_min) = uv_range.0;
+        let (u_max, v_max) = uv_range.1;
+
+        // Normalize UV coordinates to the range [0, 1]
+        let u_normalized = u;
+        let v_normalized = v;
+
+        // Map to the specified UV range
+        let u_mapped = u_min + (u_normalized * (u_max - u_min));
+        let v_mapped = v_min + (v_normalized * (v_max - v_min));
+
+        (u_mapped, v_mapped)
     }
 }
 
@@ -126,7 +154,8 @@ impl Hittable for Cube {
             Vec3::new(0.0, 0.0, -1.0)
         };
 
-        let (u, v) = Cube::get_cube_uv(p, half_size);
+        let p_relative_to_center = p - self.center;
+        let (u, v) = Cube::get_cube_uv(p_relative_to_center, half_size);
 
         // Create the hit record
         let mut rec = HitRecord {

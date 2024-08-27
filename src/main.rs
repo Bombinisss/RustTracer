@@ -18,7 +18,6 @@ use crate::camera::Camera;
 use crate::cube::Cube;
 use crate::hittables::HittableList;
 use crate::material::{Dielectric, Lambertian, Material, Metal};
-use crate::shapes::Cuboid;
 use crate::sphere::Sphere;
 use crate::textures::{CheckerTexture, ImageTexture};
 use crate::utils::{random_double, random_double_range};
@@ -119,11 +118,13 @@ fn spheres_and_cubes() {
         earth_surface,
     ))));
 
-    let material3 = Material::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.01));
-    world.add(Arc::new(Shapes::Cuboid(Cuboid::new(
-        Vec3::new(4.0, 1.0, -0.3),
-        Vec3::new(4.0, 2.0, 1.0),
-        material3,
+    //let material3 = Material::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.01));
+    let test_texture = Arc::new(ImageTexture::new("moon.png"));
+    let test_surface = Material::Lambertian(Lambertian::new_from_texture(test_texture));
+    world.add(Arc::new(Shapes::Cube(Cube::new(
+        Vec3::new(4.5, 1.0, -0.3),
+        1.4,
+        test_surface,
     ))));
 
     let bvh_node = BvhNode::new_from_list(&world);
