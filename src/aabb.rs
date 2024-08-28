@@ -19,14 +19,33 @@ impl Default for Aabb {
 }
 
 impl Aabb {
-    pub const fn new(x: Interval, y: Interval, z: Interval) -> Aabb {
+    pub fn new(x: Interval, y: Interval, z: Interval) -> Aabb {
+        let mut temp = Aabb { x, y, z };
+        Aabb::pad_to_minimums(&mut temp);
+        temp
+    }
+
+    pub const fn new_const(x: Interval, y: Interval, z: Interval) -> Aabb {
         Aabb { x, y, z }
     }
 
-    pub const EMPTY: Aabb = Aabb::new(Interval::EMPTY, Interval::EMPTY, Interval::EMPTY);
+    fn pad_to_minimums(&mut self) -> () {
+        let delta = 0.0001;
+        if self.x.size() < delta {
+            self.x = self.x.expand(delta);
+        }
+        if self.y.size() < delta {
+            self.y = self.y.expand(delta);
+        }
+        if self.z.size() < delta {
+            self.z = self.z.expand(delta);
+        }
+    }
+
+    pub const EMPTY: Aabb = Aabb::new_const(Interval::EMPTY, Interval::EMPTY, Interval::EMPTY);
 
     pub const _UNIVERSE: Aabb =
-        Aabb::new(Interval::UNIVERSE, Interval::UNIVERSE, Interval::UNIVERSE);
+        Aabb::new_const(Interval::UNIVERSE, Interval::UNIVERSE, Interval::UNIVERSE);
 
     pub fn longest_axis(&self) -> i32 {
         // Returns the index of the longest axis of the bounding box.
@@ -72,7 +91,9 @@ impl Aabb {
             Interval::new(b[2], a[2])
         };
 
-        Aabb { x, y, z }
+        let mut temp = Aabb { x, y, z };
+        Aabb::pad_to_minimums(&mut temp);
+        temp
     }
 
     pub fn axis_interval(&self, n: i32) -> Interval {
