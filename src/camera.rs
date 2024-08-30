@@ -199,7 +199,7 @@ impl Camera {
         vup: Vec3,
         defocus_angle: f64,
         focus_dist: f64,
-        file_name: &str
+        file_name: &str,
     ) -> Self {
         let file = File::create(file_name).unwrap();
 

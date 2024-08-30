@@ -15,12 +15,12 @@ use crate::bvh::BvhNode;
 use crate::camera::Camera;
 use crate::hittables::HittableList;
 use crate::material::{Dielectric, Lambertian, Material, Metal};
+use crate::shapes::{Cube, Cuboid, Sphere};
 use crate::textures::{CheckerTexture, ImageTexture};
 use crate::utils::{random_double, random_double_range};
 use crate::vec3::Vec3;
 use shapes::Shapes;
 use std::sync::Arc;
-use crate::shapes::{Cube, Cuboid, Sphere};
 
 fn spheres_and_cubes() {
     let mut world = HittableList::new();

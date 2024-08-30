@@ -1,10 +1,10 @@
-use std::f64::consts::PI;
 use crate::aabb::Aabb;
 use crate::hittables::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::utils::{map_uv_to_range, Interval};
 use crate::vec3::Vec3;
+use std::f64::consts::PI;
 
 pub enum Shapes {
     Sphere(Sphere),
