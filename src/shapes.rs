@@ -432,3 +432,42 @@ impl Hittable for Cube {
         self.bbox
     }
 }
+
+pub struct Quad {
+    q: Vec3,
+    u: Vec3,
+    v: Vec3,
+    mat: Material,
+    bbox: Aabb,
+}
+
+impl Quad {
+    pub fn new(q: Vec3, u: Vec3, v: Vec3, mat: Material) -> Self {
+        let mut quad = Quad {
+            q,
+            u,
+            v,
+            mat,
+            bbox: Aabb::default(),
+        };
+        quad.set_bounding_box();
+        quad
+    }
+
+    fn set_bounding_box(&mut self) {
+        // Compute the bounding box of all four vertices.
+        let bbox_diagonal1 = Aabb::new_from_vec3(self.q, self.q + self.u + self.v);
+        let bbox_diagonal2 = Aabb::new_from_vec3(self.q + self.u, self.q + self.v);
+        self.bbox = Aabb::new_from_aabb(bbox_diagonal1, bbox_diagonal2);
+    }
+}
+
+impl Hittable for Quad {
+    fn hit(&self, _r: Ray, _ray_t: Interval) -> Option<HitRecord> {
+        None //TODO
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
+    }
+}
