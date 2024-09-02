@@ -439,16 +439,24 @@ pub struct Quad {
     v: Vec3,
     mat: Material,
     bbox: Aabb,
+    normal: Vec3,
+    d: f64,
 }
 
 impl Quad {
     pub fn new(q: Vec3, u: Vec3, v: Vec3, mat: Material) -> Self {
+        let n = Vec3::cross(&u, &v);
+        let normal = Vec3::unit_vector(n);
+        let d = Vec3::dot(&normal, &q);
+
         let mut quad = Quad {
             q,
             u,
             v,
             mat,
             bbox: Aabb::default(),
+            normal,
+            d,
         };
         quad.set_bounding_box();
         quad
