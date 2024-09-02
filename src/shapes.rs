@@ -437,14 +437,14 @@ pub struct Quad {
     q: Vec3,
     u: Vec3,
     v: Vec3,
-    mat: Material,
+    material: Material,
     bbox: Aabb,
     normal: Vec3,
     d: f64,
 }
 
 impl Quad {
-    pub fn new(q: Vec3, u: Vec3, v: Vec3, mat: Material) -> Self {
+    pub fn new(q: Vec3, u: Vec3, v: Vec3, material: Material) -> Self {
         let n = Vec3::cross(&u, &v);
         let normal = Vec3::unit_vector(n);
         let d = Vec3::dot(&normal, &q);
@@ -453,7 +453,7 @@ impl Quad {
             q,
             u,
             v,
-            mat,
+            material,
             bbox: Aabb::default(),
             normal,
             d,
@@ -471,8 +471,33 @@ impl Quad {
 }
 
 impl Hittable for Quad {
-    fn hit(&self, _r: Ray, _ray_t: Interval) -> Option<HitRecord> {
-        None //TODO
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> { //TODO: Finish Quad
+        let denom = Vec3::dot(&self.normal, &r.direction);
+
+        // No hit if the ray is parallel to the plane.
+        if f64::abs(denom) < 1e-8
+        { return None; }
+
+        // Return none if the hit point parameter t is outside the ray interval.
+        let t = (self.d - Vec3::dot(&self.normal, &r.origin)) / denom;
+        if !ray_t.contains(t) { return None; }
+
+        let intersection = r.at(t);
+
+        // Create the hit record
+        let mut rec = HitRecord {
+            p: intersection,
+            normal: self.normal,
+            t,
+            front_face: false,
+            material: &self.material,
+            u: 0.0,
+            v: 0.0,
+        };
+
+        rec.set_face_normal(r, self.normal);
+        
+        Some(rec)
     }
 
     fn bounding_box(&self) -> Aabb {
