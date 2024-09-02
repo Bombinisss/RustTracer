@@ -10,6 +10,7 @@ pub enum Shapes {
     Sphere(Sphere),
     Cube(Cube),
     Cuboid(Cuboid),
+    Quad(Quad),
 }
 
 impl Hittable for Shapes {
@@ -18,6 +19,7 @@ impl Hittable for Shapes {
             Shapes::Sphere(s) => s.hit(r, ray_t),
             Shapes::Cube(c) => c.hit(r, ray_t),
             Shapes::Cuboid(c) => c.hit(r, ray_t),
+            Shapes::Quad(q) => q.hit(r, ray_t),
         }
     }
 
@@ -26,6 +28,7 @@ impl Hittable for Shapes {
             Shapes::Sphere(s) => s.bounding_box(),
             Shapes::Cube(c) => c.bounding_box(),
             Shapes::Cuboid(c) => c.bounding_box(),
+            Shapes::Quad(q) => q.bounding_box(),
         }
     }
 }
@@ -441,6 +444,7 @@ pub struct Quad {
     bbox: Aabb,
     normal: Vec3,
     d: f64,
+    w: Vec3,
 }
 
 impl Quad {
@@ -448,6 +452,7 @@ impl Quad {
         let n = Vec3::cross(&u, &v);
         let normal = Vec3::unit_vector(n);
         let d = Vec3::dot(&normal, &q);
+        let w = n / Vec3::dot(&n, &n);
 
         let mut quad = Quad {
             q,
@@ -457,6 +462,7 @@ impl Quad {
             bbox: Aabb::default(),
             normal,
             d,
+            w,
         };
         quad.set_bounding_box();
         quad
@@ -468,23 +474,42 @@ impl Quad {
         let bbox_diagonal2 = Aabb::new_from_vec3(self.q + self.u, self.q + self.v);
         self.bbox = Aabb::new_from_aabb(bbox_diagonal1, bbox_diagonal2);
     }
+
+    fn is_interior(a: f64, b: f64, rec: &mut HitRecord) -> bool {
+        let unit_interval = Interval::new(0.0, 1.0);
+        // Given the hit point in plane coordinates, return false if it is outside the
+        // primitive, otherwise set the hit record UV coordinates and return true.
+
+        if !unit_interval.contains(a) || !unit_interval.contains(b)
+        { return false; }
+
+        rec.u = a;
+        rec.v = b;
+        true
+    }
 }
 
 impl Hittable for Quad {
-    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> { //TODO: Finish Quad
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
         let denom = Vec3::dot(&self.normal, &r.direction);
 
         // No hit if the ray is parallel to the plane.
-        if f64::abs(denom) < 1e-8
-        { return None; }
+        if f64::abs(denom) < 1e-8 {
+            return None;
+        }
 
         // Return none if the hit point parameter t is outside the ray interval.
         let t = (self.d - Vec3::dot(&self.normal, &r.origin)) / denom;
-        if !ray_t.contains(t) { return None; }
+        if !ray_t.contains(t) {
+            return None;
+        }
 
+        // Determine if the hit point lies within the planar shape using its plane coordinates.
         let intersection = r.at(t);
+        let planar_hitpt_vector = intersection - self.q;
+        let alpha = Vec3::dot(&self.w, &Vec3::cross(&planar_hitpt_vector, &self.v));
+        let beta = Vec3::dot(&self.w, &Vec3::cross(&self.u, &planar_hitpt_vector));
 
-        // Create the hit record
         let mut rec = HitRecord {
             p: intersection,
             normal: self.normal,
@@ -494,9 +519,13 @@ impl Hittable for Quad {
             u: 0.0,
             v: 0.0,
         };
+        
+        if !Quad::is_interior(alpha, beta, &mut rec) {
+            return None;
+        }
 
         rec.set_face_normal(r, self.normal);
-        
+
         Some(rec)
     }
 
