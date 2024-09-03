@@ -139,6 +139,7 @@ fn spheres_and_cubes() {
         0.6,
         10.0,
         "out1.ppm",
+        Vec3::new(0.70, 0.80, 1.00),
     );
 
     cam.render(&bvh_node);
@@ -178,6 +179,7 @@ fn checkered_spheres() {
         0.0,
         10.0,
         "out2.ppm",
+        Vec3::new(0.70, 0.80, 1.00),
     );
 
     cam.render(&bvh_node);
@@ -210,6 +212,7 @@ fn earth() {
         0.0,
         10.0,
         "out3.ppm",
+        Vec3::new(0.70, 0.80, 1.00),
     );
 
     cam.render(&bvh_node);
@@ -270,13 +273,14 @@ fn quads() {
         0.0,
         10.0,
         "out4.ppm",
+        Vec3::new(0.70, 0.80, 1.00),
     );
 
     cam.render(&bvh_node);
 }
 
 fn main() {
-    let num = 4;
+    let num = 1;
     match num {
         1 => spheres_and_cubes(),
         2 => checkered_spheres(),

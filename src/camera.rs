@@ -25,26 +25,39 @@ pub struct Camera {
     defocus_angle: f64,       // Variation angle of rays through each pixel
     defocus_disk_u: Vec3,     // Defocus disk horizontal radius
     defocus_disk_v: Vec3,     // Defocus disk vertical radius
+    background: Vec3,
 }
 
 impl Camera {
-    fn ray_color(r: Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
+    fn ray_color(&self ,r: Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
+        // If we've exceeded the ray bounce limit, no more light is gathered.
         if depth <= 0 {
             return Vec3::new(0.0, 0.0, 0.0);
         }
 
-        if let Some(hit) = world.hit(r, Interval::new(0.001, f64::INFINITY)) {
-            let temp_rec = Some(hit).unwrap();
+        // Attempt to hit something in the world
+        if let Some(hit_record) = world.hit(r, Interval::new(0.001, f64::INFINITY)) {
+            // Get the emitted color from the hit material
+            let color_from_emission =
+                hit_record
+                    .material
+                    .emitted(hit_record.u, hit_record.v, hit_record.p);
 
-            if let Some(scat) = temp_rec.material.scatter(&r, &temp_rec) {
-                return scat.1 * Self::ray_color(scat.0.unwrap(), depth - 1, world);
+            // Attempt to scatter the ray
+            if let Some((scattered_ray, attenuation)) = hit_record.material.scatter(&r, &hit_record)
+            {
+                // Recursively trace the scattered ray
+                let color_from_scatter = attenuation
+                    * Self::ray_color(self, scattered_ray.unwrap(), depth - 1, world);
+                color_from_emission + color_from_scatter
+            } else {
+                // Return just the emission color if scattering fails
+                color_from_emission
             }
-            return Vec3::new(0.0, 0.0, 0.0);
+        } else {
+            // Return the background color if the ray hits nothing
+            self.background
         }
-
-        let unit_direction = Vec3::unit_vector(r.direction);
-        let a = 0.5 * (unit_direction.y() + 1.0);
-        (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
     }
 
     pub fn render(&self, world: &dyn Hittable) {
@@ -70,7 +83,7 @@ impl Camera {
                 let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i as i32, j as i32);
-                    pixel_color = pixel_color + Camera::ray_color(r, self.max_depth, world);
+                    pixel_color = pixel_color + Camera::ray_color(self, r, self.max_depth, world);
                 }
 
                 // Scale and gamma correct the color, then convert to bytes.
@@ -200,6 +213,7 @@ impl Camera {
         defocus_angle: f64,
         focus_dist: f64,
         file_name: &str,
+        background: Vec3,
     ) -> Self {
         let file = File::create(file_name).unwrap();
 
@@ -254,6 +268,7 @@ impl Camera {
             defocus_angle,
             defocus_disk_u,
             defocus_disk_v,
+            background,
         }
     }
 }

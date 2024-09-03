@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 pub trait Scatterable {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)>;
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3;
 }
 #[derive(Clone)]
 pub enum Material {
@@ -21,6 +22,10 @@ impl Scatterable for Material {
             Material::Metal(m) => m.scatter(r_in, rec),
             Material::Dielectric(d) => d.scatter(r_in, rec),
         }
+    }
+
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
     }
 }
 #[derive(Clone)]
@@ -49,6 +54,10 @@ impl Scatterable for Lambertian {
         let attenuation = self.texture.value(rec.u, rec.v, rec.p);
         Some((Some(scattered), attenuation))
     }
+
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
+    }
 }
 
 #[derive(Clone)]
@@ -75,6 +84,10 @@ impl Scatterable for Metal {
         let attenuation = self.albedo;
 
         Some((Some(scattered), attenuation))
+    }
+
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
     }
 }
 
@@ -117,5 +130,28 @@ impl Scatterable for Dielectric {
             let scattered = Ray::new(rec.p, direction);
             Some((Some(scattered), attenuation))
         }
+    }
+
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
+    }
+}
+
+pub struct DiffuseLight {
+    texture: Arc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(albedo: Vec3) -> DiffuseLight {
+        let texture = Arc::new(SolidColor::new(albedo));
+        DiffuseLight { texture }
+    }
+
+    pub fn new_from_texture(texture: Arc<dyn Texture>) -> DiffuseLight {
+        DiffuseLight { texture }
+    }
+
+    pub fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
+        self.texture.value(u, v, p)
     }
 }
