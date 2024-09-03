@@ -332,14 +332,91 @@ fn light() {
     cam.render(&bvh_node);
 }
 
+fn cornell_box() {
+    let mut world = HittableList::new();
+
+    let red = Material::Lambertian(Lambertian::new(Vec3::new(0.65, 0.05, 0.05)));
+    let white = Material::Lambertian(Lambertian::new(Vec3::new(0.73, 0.73, 0.73)));
+    let green = Material::Lambertian(Lambertian::new(Vec3::new(0.12, 0.45, 0.15)));
+    let light = Material::DiffuseLight(DiffuseLight::new(Vec3::new(15.0, 15.0, 15.0)));
+
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        green,
+    ))));
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        red,
+    ))));
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(343.0, 554.0, 332.0),
+        Vec3::new(-130.0, 0.0, 4.0),
+        Vec3::new(0.0, 0.0, -105.0),
+        light,
+    ))));
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(0.0, 0.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    ))));
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(555.0, 555.0, 555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        white.clone(),
+    ))));
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    ))));
+    world.add(Arc::new(Shapes::Cuboid(Cuboid::new(
+        Vec3::new(212.5,82.5,147.5),
+        Vec3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    ))));
+    world.add(Arc::new(Shapes::Cuboid(Cuboid::new(
+        Vec3::new(347.5,165.0,377.5),
+        Vec3::new(165.0, 330.0, 165.0),
+        white,
+    ))));
+    
+    let bvh_node = BvhNode::new_from_list(&world);
+
+    /* Camera */
+    let cam: Camera = Camera::new(
+        16.0 / 9.0,
+        1200.0,
+        2000,
+        50,
+        40.0,
+        Vec3::new(278.0, 278.0, -800.0),
+        Vec3::new(278.0, 278.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        0.0,
+        10.0,
+        "out6.ppm",
+        Vec3::new(0.0, 0.0, 0.0),
+    );
+
+    cam.render(&bvh_node);
+}
+
 fn main() {
-    let num = 5;
+    let num = 6;
     match num {
         1 => spheres_and_cubes(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => quads(),
         5 => light(),
+        6 => cornell_box(),
         _ => {}
     }
 }
