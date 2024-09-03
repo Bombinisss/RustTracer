@@ -300,6 +300,11 @@ fn light() {
         2.0,
         red,
     ))));
+    world.add(Arc::new(Shapes::Sphere(Sphere::new(
+        Vec3::new(0.0, 7.0, 0.0),
+        2.0,
+        light.clone(),
+    ))));
     world.add(Arc::new(Shapes::Quad(Quad::new(
         Vec3::new(3.0, 1.0, -2.0),
         Vec3::new(2.0, 0.0, 0.0),
