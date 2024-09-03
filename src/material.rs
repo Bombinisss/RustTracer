@@ -14,6 +14,7 @@ pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
     Dielectric(Dielectric),
+    DiffuseLight(DiffuseLight),
 }
 impl Scatterable for Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
@@ -21,11 +22,17 @@ impl Scatterable for Material {
             Material::Lambertian(l) => l.scatter(r_in, rec),
             Material::Metal(m) => m.scatter(r_in, rec),
             Material::Dielectric(d) => d.scatter(r_in, rec),
+            Material::DiffuseLight(d) => d.scatter(r_in, rec),
         }
     }
 
-    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
-        Vec3::new(0.0, 0.0, 0.0)
+    fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
+        match self {
+            Material::Lambertian(l) => l.emitted(u, v, p),
+            Material::Metal(m) => m.emitted(u, v, p),
+            Material::Dielectric(d) => d.emitted(u, v, p),
+            Material::DiffuseLight(d) => d.emitted(u, v, p),
+        }
     }
 }
 #[derive(Clone)]
@@ -137,6 +144,7 @@ impl Scatterable for Dielectric {
     }
 }
 
+#[derive(Clone)]
 pub struct DiffuseLight {
     texture: Arc<dyn Texture>,
 }
@@ -150,8 +158,14 @@ impl DiffuseLight {
     pub fn new_from_texture(texture: Arc<dyn Texture>) -> DiffuseLight {
         DiffuseLight { texture }
     }
+}
 
-    pub fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
+impl Scatterable for DiffuseLight {
+    fn scatter(&self, _r_in: &Ray, _rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
+        None
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
         self.texture.value(u, v, p)
     }
 }

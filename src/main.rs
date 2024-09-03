@@ -14,7 +14,7 @@ mod vec3;
 use crate::bvh::BvhNode;
 use crate::camera::Camera;
 use crate::hittables::HittableList;
-use crate::material::{Dielectric, Lambertian, Material, Metal};
+use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::shapes::{Cube, Cuboid, Quad, Sphere};
 use crate::textures::{CheckerTexture, ImageTexture};
 use crate::utils::{random_double, random_double_range};
@@ -228,19 +228,19 @@ fn quads() {
     let lower_teal = Material::Lambertian(Lambertian::new(Vec3::new(0.2, 0.8, 0.8)));
 
     world.add(Arc::new(Shapes::Quad(Quad::new(
-        Vec3::new(-3.0,-2.0, 5.0),
-        Vec3::new(0.0, 0.0,-4.0),
+        Vec3::new(-3.0, -2.0, 5.0),
+        Vec3::new(0.0, 0.0, -4.0),
         Vec3::new(0.0, 4.0, 0.0),
         left_red,
     ))));
     world.add(Arc::new(Shapes::Quad(Quad::new(
-        Vec3::new(-2.0,-2.0, 0.0),
+        Vec3::new(-2.0, -2.0, 0.0),
         Vec3::new(4.0, 0.0, 0.0),
         Vec3::new(0.0, 4.0, 0.0),
         back_green,
     ))));
     world.add(Arc::new(Shapes::Quad(Quad::new(
-        Vec3::new( 3.0,-2.0, 1.0),
+        Vec3::new(3.0, -2.0, 1.0),
         Vec3::new(0.0, 0.0, 4.0),
         Vec3::new(0.0, 4.0, 0.0),
         right_blue,
@@ -252,9 +252,9 @@ fn quads() {
         upper_orange,
     ))));
     world.add(Arc::new(Shapes::Quad(Quad::new(
-        Vec3::new(-2.0,-3.0, 5.0),
+        Vec3::new(-2.0, -3.0, 5.0),
         Vec3::new(4.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0,-4.0),
+        Vec3::new(0.0, 0.0, -4.0),
         lower_teal,
     ))));
 
@@ -279,13 +279,62 @@ fn quads() {
     cam.render(&bvh_node);
 }
 
+fn light() {
+    let mut world = HittableList::new();
+
+    let checker = Material::Lambertian(Lambertian::new_from_texture(Arc::new(
+        CheckerTexture::new_from_rgb(0.32, Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9)),
+    )));
+
+    world.add(Arc::new(Shapes::Sphere(Sphere::new(
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        checker,
+    ))));
+
+    let red = Material::Lambertian(Lambertian::new(Vec3::new(1.0, 0.2, 0.2)));
+    let light = Material::DiffuseLight(DiffuseLight::new(Vec3::new(5.0, 5.0, 5.0)));
+
+    world.add(Arc::new(Shapes::Sphere(Sphere::new(
+        Vec3::new(0.0, 2.0, 0.0),
+        2.0,
+        red,
+    ))));
+    world.add(Arc::new(Shapes::Quad(Quad::new(
+        Vec3::new(3.0, 1.0, -2.0),
+        Vec3::new(2.0, 0.0, 0.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        light,
+    ))));
+    let bvh_node = BvhNode::new_from_list(&world);
+
+    /* Camera */
+    let cam: Camera = Camera::new(
+        16.0 / 9.0,
+        1200.0,
+        500,
+        50,
+        20.0,
+        Vec3::new(26.0, 3.0, 6.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        0.0,
+        10.0,
+        "out5.ppm",
+        Vec3::new(0.0, 0.0, 0.0),
+    );
+
+    cam.render(&bvh_node);
+}
+
 fn main() {
-    let num = 1;
+    let num = 5;
     match num {
         1 => spheres_and_cubes(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => quads(),
+        5 => light(),
         _ => {}
     }
 }

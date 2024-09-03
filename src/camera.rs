@@ -29,35 +29,29 @@ pub struct Camera {
 }
 
 impl Camera {
-    fn ray_color(&self ,r: Ray, depth: i32, world: &dyn Hittable) -> Vec3 {
-        // If we've exceeded the ray bounce limit, no more light is gathered.
+    fn ray_color(r: Ray, depth: i32, world: &dyn Hittable, background: Vec3) -> Vec3 {
         if depth <= 0 {
             return Vec3::new(0.0, 0.0, 0.0);
         }
 
-        // Attempt to hit something in the world
-        if let Some(hit_record) = world.hit(r, Interval::new(0.001, f64::INFINITY)) {
-            // Get the emitted color from the hit material
-            let color_from_emission =
-                hit_record
-                    .material
-                    .emitted(hit_record.u, hit_record.v, hit_record.p);
-
-            // Attempt to scatter the ray
-            if let Some((scattered_ray, attenuation)) = hit_record.material.scatter(&r, &hit_record)
-            {
-                // Recursively trace the scattered ray
-                let color_from_scatter = attenuation
-                    * Self::ray_color(self, scattered_ray.unwrap(), depth - 1, world);
-                color_from_emission + color_from_scatter
-            } else {
-                // Return just the emission color if scattering fails
-                color_from_emission
-            }
-        } else {
-            // Return the background color if the ray hits nothing
-            self.background
+        let hit = world.hit(r, Interval::new(0.001, f64::INFINITY));
+        
+        if hit.is_none() {
+            return background;
         }
+
+        let temp_rec = hit.unwrap();
+        let color_from_emission = temp_rec.material.emitted(temp_rec.u, temp_rec.v, temp_rec.p);
+
+        let scat = temp_rec.material.scatter(&r, &temp_rec);
+
+        if scat.is_none() {
+            return color_from_emission;
+        }
+
+        let color_from_scatter = scat.unwrap().1 * Self::ray_color(scat.unwrap().0.unwrap(), depth-1, world, background);
+
+        color_from_emission + color_from_scatter
     }
 
     pub fn render(&self, world: &dyn Hittable) {
@@ -83,7 +77,8 @@ impl Camera {
                 let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i as i32, j as i32);
-                    pixel_color = pixel_color + Camera::ray_color(self, r, self.max_depth, world);
+                    pixel_color =
+                        pixel_color + Camera::ray_color(r, self.max_depth, world, self.background);
                 }
 
                 // Scale and gamma correct the color, then convert to bytes.
