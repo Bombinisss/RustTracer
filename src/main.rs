@@ -392,8 +392,8 @@ fn cornell_box() {
     /* Camera */
     let cam: Camera = Camera::new(
         16.0 / 9.0,
-        1200.0,
-        2000,
+        1000.0,
+        2500,
         50,
         40.0,
         Vec3::new(278.0, 278.0, -800.0),
