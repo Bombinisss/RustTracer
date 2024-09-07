@@ -1,7 +1,6 @@
 use crate::aabb::Aabb;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::shapes::Shapes;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
 use std::sync::Arc;
@@ -57,7 +56,7 @@ impl<'material> HitRecord<'material> {
 }
 
 pub struct HittableList {
-    pub objects: Vec<Arc<Shapes>>,
+    pub objects: Vec<Arc<dyn Hittable>>,
     bbox: Aabb,
 }
 
@@ -71,7 +70,7 @@ impl HittableList {
     pub fn clear(&mut self) -> () {
         self.objects.clear();
     }
-    pub fn add(&mut self, object: Arc<Shapes>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object.clone());
         self.bbox = Aabb::new_from_aabb(self.bbox, object.bounding_box());
     }

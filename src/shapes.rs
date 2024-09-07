@@ -6,33 +6,6 @@ use crate::utils::{map_uv_to_range, Interval};
 use crate::vec3::Vec3;
 use std::f64::consts::PI;
 
-pub enum Shapes {
-    Sphere(Sphere),
-    Cube(Cube),
-    Cuboid(Cuboid),
-    Quad(Quad),
-}
-
-impl Hittable for Shapes {
-    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
-        match self {
-            Shapes::Sphere(s) => s.hit(r, ray_t),
-            Shapes::Cube(c) => c.hit(r, ray_t),
-            Shapes::Cuboid(c) => c.hit(r, ray_t),
-            Shapes::Quad(q) => q.hit(r, ray_t),
-        }
-    }
-
-    fn bounding_box(&self) -> Aabb {
-        match self {
-            Shapes::Sphere(s) => s.bounding_box(),
-            Shapes::Cube(c) => c.bounding_box(),
-            Shapes::Cuboid(c) => c.bounding_box(),
-            Shapes::Quad(q) => q.bounding_box(),
-        }
-    }
-}
-
 pub struct Cuboid {
     center: Vec3,
     dimensions: Vec3, //(width, height, depth)
