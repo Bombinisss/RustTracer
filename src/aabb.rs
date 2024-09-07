@@ -1,6 +1,7 @@
 use crate::ray::Ray;
 use crate::utils::Interval;
 use crate::vec3::Vec3;
+use std::ops::Add;
 #[derive(Debug, Clone, Copy)]
 pub struct Aabb {
     pub x: Interval,
@@ -139,5 +140,17 @@ impl Aabb {
         }
 
         true
+    }
+}
+
+impl Add<Vec3> for Aabb {
+    type Output = Aabb;
+
+    fn add(self, offset: Vec3) -> Aabb {
+        Aabb::new(
+            self.x + offset.x(),
+            self.y + offset.y(),
+            self.z + offset.z(),
+        )
     }
 }

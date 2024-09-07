@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::ops::Add;
 pub fn random_double() -> f64 {
     // Returns a random real in [0, 1).
     let mut rng = rand::thread_rng();
@@ -86,5 +87,13 @@ impl Interval {
 impl Default for Interval {
     fn default() -> Self {
         Interval { min: 0.0, max: 0.0 }
+    }
+}
+
+impl Add<f64> for Interval {
+    type Output = Interval;
+
+    fn add(self, displacement: f64) -> Interval {
+        Interval::new(self.min + displacement, self.max + displacement)
     }
 }

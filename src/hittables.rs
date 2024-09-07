@@ -95,3 +95,44 @@ impl Hittable for HittableList {
         self.bbox
     }
 }
+
+pub struct Translate {
+    object: Arc<dyn Hittable>,
+    offset: Vec3,
+    bbox: Aabb,
+}
+
+impl Translate {
+    pub fn new(object: Arc<dyn Hittable>, offset: Vec3) -> Translate {
+        let bbox = object.bounding_box() + offset;
+        
+        Translate {
+            object,
+            offset,
+            bbox,
+        }
+    }
+}
+
+impl Hittable for Translate {
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
+
+        let offset_r = Ray::new(r.origin - self.offset, r.direction);
+
+        let hit = self.object.hit(offset_r, ray_t);
+
+        if hit.is_none() {
+            return None;
+        }
+
+        let mut temp_rec = hit?;
+        
+        temp_rec.p = temp_rec.p + self.offset;
+
+        Some(temp_rec)
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
+    }
+}
