@@ -13,7 +13,7 @@ mod vec3;
 
 use crate::bvh::BvhNode;
 use crate::camera::Camera;
-use crate::hittables::HittableList;
+use crate::hittables::{HittableList, RotateY, Translate};
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::shapes::{Cube, Cuboid, Quad, Sphere};
 use crate::textures::{CheckerTexture, ImageTexture};
@@ -363,26 +363,27 @@ fn cornell_box() {
             white.clone(),
         ),
     ));
-    world.add(Arc::new(
+    world.add(Arc::new(Translate::new(Arc::new(RotateY::new(Arc::new(
         Cuboid::new(
             Vec3::new(212.5, 82.5, 147.5),
             Vec3::new(165.0, 165.0, 165.0),
             white.clone(),
         ),
-    ));
-    world.add(Arc::new(
+    ), -18.0)), Vec3::new(23.0, 0.0, -29.0))));
+    
+    world.add(Arc::new(Translate::new(Arc::new(RotateY::new(Arc::new(
         Cuboid::new(
             Vec3::new(347.5, 165.0, 377.5),
             Vec3::new(165.0, 330.0, 165.0),
             white,
         ),
-    ));
+    ), 15.0)), Vec3::new(-70.0, 0.0, 40.0))));
 
     let bvh_node = BvhNode::new_from_list(&world);
 
     /* Camera */
     let cam: Camera = Camera::new(
-        16.0 / 9.0,
+        1.0,
         1000.0,
         1000,
         50,
