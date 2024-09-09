@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod aabb;
 mod bvh;
 mod camera;
@@ -13,7 +14,7 @@ mod vec3;
 
 use crate::bvh::BvhNode;
 use crate::camera::Camera;
-use crate::hittables::{HittableList, RotateY, Translate};
+use crate::hittables::{ConstantMedium, HittableList, RotateY, Translate};
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::shapes::{Cube, Cuboid, Quad, Sphere};
 use crate::textures::{CheckerTexture, ImageTexture};
@@ -439,14 +440,14 @@ fn final_scene() {
 
     world.add(Arc::new(Sphere::new(
         Vec3::new(360.0, 150.0, 145.0),
-        73.0,
+        70.1,
         glass.clone(),
     )));
 
     world.add(Arc::new(Sphere::new(
         Vec3::new(360.0, 150.0, 145.0),
         70.0,
-        Material::Lambertian(Lambertian::new(Vec3::new(0.1, 0.3, 0.8))),
+        Material::Lambertian(Lambertian::new(Vec3::new(0.2, 0.4, 0.9))),
     )));
 
     world.add(Arc::new(Sphere::new(
@@ -461,7 +462,7 @@ fn final_scene() {
         glass_sphere_size,
         glass.clone(),
     )));
-    let moon_texture = Arc::new(ImageTexture::new("moon.png"));
+    let moon_texture = Arc::new(ImageTexture::new("dirt.png"));
     let moon_surface = Material::Lambertian(Lambertian::new_from_texture(moon_texture));
     let moon_cube_center = Vec3::new(220.0, 280.0, 300.0);
     let moon_cube = Arc::new(Cube::new(
@@ -502,13 +503,38 @@ fn final_scene() {
         Vec3::new(-100.0, 270.0, 395.0),
     )));
 
+    let boundary = Arc::new(Sphere::new(
+        Vec3::new(0.0, 0.0, 0.0),
+        5000.0,
+        Material::Dielectric(Dielectric::new(1.5)),
+    ));
+    
+    world.add(Arc::new(ConstantMedium::new_from_color(boundary, 0.0001, Vec3::new(1.0, 1.0, 1.0))));
+
+    let white = Material::Lambertian(Lambertian::new(Vec3::new(0.73, 0.73, 0.73)));
+    let sphere_count = 100;
+    let mut spheres = HittableList::new();
+    for _i in 0..sphere_count {
+        let sphere = Arc::new(Sphere::new(
+            Vec3::new(random_double_range(0.0, 800.0), 80.0, random_double_range(0.0, 800.0)),
+            70.0,
+            white.clone(),
+        ));
+        spheres.add(Arc::new(ConstantMedium::new_from_color(sphere, 0.001, Vec3::new(1.0, 1.0, 1.0))));
+    }
+
+    world.add(Arc::new(Translate::new(
+        Arc::new(spheres),
+        Vec3::new(0.0, 0.0, -100.0),
+    )));
+    
     let bvh_node = BvhNode::new_from_list(&world);
 
     /* Camera */
     let cam: Camera = Camera::new(
         1.0,
         1000.0,
-        1000,
+        2500,
         40,
         40.0,
         Vec3::new(478.0, 278.0, -600.0),

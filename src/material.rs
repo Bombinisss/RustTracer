@@ -15,6 +15,7 @@ pub enum Material {
     Metal(Metal),
     Dielectric(Dielectric),
     DiffuseLight(DiffuseLight),
+    Isotropic(Isotropic),
 }
 impl Scatterable for Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
@@ -23,6 +24,7 @@ impl Scatterable for Material {
             Material::Metal(m) => m.scatter(r_in, rec),
             Material::Dielectric(d) => d.scatter(r_in, rec),
             Material::DiffuseLight(d) => d.scatter(r_in, rec),
+            Material::Isotropic(i) => i.scatter(r_in, rec),
         }
     }
 
@@ -32,6 +34,7 @@ impl Scatterable for Material {
             Material::Metal(m) => m.emitted(u, v, p),
             Material::Dielectric(d) => d.emitted(u, v, p),
             Material::DiffuseLight(d) => d.emitted(u, v, p),
+            Material::Isotropic(i) => i.emitted(u, v, p),
         }
     }
 }
@@ -167,5 +170,34 @@ impl Scatterable for DiffuseLight {
 
     fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
         self.texture.value(u, v, p)
+    }
+}
+
+#[derive(Clone)]
+pub struct Isotropic {
+    texture: Arc<dyn Texture>,
+}
+
+impl Isotropic {
+    pub fn new_with_color(albedo: Vec3) -> Self {
+        Self {
+            texture: Arc::new(SolidColor::new(albedo)),
+        }
+    }
+
+    pub fn new_with_texture(texture: Arc<dyn Texture>) -> Self {
+        Self { texture }
+    }
+}
+
+impl Scatterable for Isotropic {
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord) -> Option<(Option<Ray>, Vec3)> {
+        let scattered = Ray::new(rec.p, Vec3::random_unit_vector());
+        let attenuation = self.texture.value(rec.u, rec.v, rec.p);
+        Some((Some(scattered), attenuation))
+    }
+
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
     }
 }

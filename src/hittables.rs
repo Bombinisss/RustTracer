@@ -1,7 +1,8 @@
 use crate::aabb::Aabb;
-use crate::material::Material;
+use crate::material::{Isotropic, Material};
 use crate::ray::Ray;
-use crate::utils::{degrees_to_radians, Interval};
+use crate::textures::Texture;
+use crate::utils::{degrees_to_radians, random_double, Interval};
 use crate::vec3::Vec3;
 use std::sync::Arc;
 
@@ -105,7 +106,7 @@ pub struct Translate {
 impl Translate {
     pub fn new(object: Arc<dyn Hittable>, offset: Vec3) -> Translate {
         let bbox = object.bounding_box() + offset;
-        
+
         Translate {
             object,
             offset,
@@ -116,7 +117,6 @@ impl Translate {
 
 impl Hittable for Translate {
     fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
-
         let offset_r = Ray::new(r.origin - self.offset, r.direction);
 
         let hit = self.object.hit(offset_r, ray_t);
@@ -126,7 +126,7 @@ impl Hittable for Translate {
         }
 
         let mut temp_rec = hit?;
-        
+
         temp_rec.p = temp_rec.p + self.offset;
 
         Some(temp_rec)
@@ -149,12 +149,12 @@ impl RotateY {
         let radians = degrees_to_radians(angle);
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
-        
+
         let mut bbox = object.bounding_box();
 
         let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
         let mut max = Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
-        
+
         for i in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
@@ -166,7 +166,7 @@ impl RotateY {
                     let newz = -sin_theta * x + cos_theta * z;
 
                     let tester = Vec3::new(newx, y, newz);
-                    
+
                     min = Vec3::new(
                         min.x().min(tester.x()),
                         min.y().min(tester.y()),
@@ -200,16 +200,16 @@ impl Hittable for RotateY {
         let origin = Vec3::new(
             (self.cos_theta * r.origin.x()) - (self.sin_theta * r.origin.z()),
             r.origin.y(),
-            (self.sin_theta * r.origin.x()) + (self.cos_theta * r.origin.z())
+            (self.sin_theta * r.origin.x()) + (self.cos_theta * r.origin.z()),
         );
 
         let direction = Vec3::new(
             (self.cos_theta * r.direction.x()) - (self.sin_theta * r.direction.z()),
             r.direction.y(),
-            (self.sin_theta * r.direction.x()) + (self.cos_theta * r.direction.z())
+            (self.sin_theta * r.direction.x()) + (self.cos_theta * r.direction.z()),
         );
 
-        let rotated_r =  Ray::new(origin, direction);
+        let rotated_r = Ray::new(origin, direction);
 
         // Determine whether an intersection exists in object space (and if so, where).
 
@@ -218,27 +218,110 @@ impl Hittable for RotateY {
         if hit.is_none() {
             return None;
         }
-        
+
         let mut temp_rec = hit?;
-        
+
         // Transform the intersection from object space back to world space.
 
         temp_rec.p = Vec3::new(
             (self.cos_theta * temp_rec.p.x()) + (self.sin_theta * temp_rec.p.z()),
             temp_rec.p.y(),
-            (-self.sin_theta * temp_rec.p.x()) + (self.cos_theta * temp_rec.p.z())
+            (-self.sin_theta * temp_rec.p.x()) + (self.cos_theta * temp_rec.p.z()),
         );
 
         temp_rec.normal = Vec3::new(
             (self.cos_theta * temp_rec.normal.x()) + (self.sin_theta * temp_rec.normal.z()),
             temp_rec.normal.y(),
-            (-self.sin_theta * temp_rec.normal.x()) + (self.cos_theta * temp_rec.normal.z())
+            (-self.sin_theta * temp_rec.normal.x()) + (self.cos_theta * temp_rec.normal.z()),
         );
-        
+
         Some(temp_rec)
     }
 
     fn bounding_box(&self) -> Aabb {
         self.bbox
+    }
+}
+
+pub struct ConstantMedium {
+    boundary: Arc<dyn Hittable>,
+    neg_inv_density: f64,
+    phase_function: Material,
+}
+
+impl ConstantMedium {
+    pub fn new_from_texture(
+        boundary: Arc<dyn Hittable>,
+        density: f64,
+        texture: Arc<dyn Texture>,
+    ) -> ConstantMedium {
+        Self {
+            boundary,
+            neg_inv_density: -1.0 / density,
+            phase_function: Material::Isotropic(Isotropic::new_with_texture(texture)),
+        }
+    }
+
+    pub fn new_from_color(boundary: Arc<dyn Hittable>, density: f64, albedo: Vec3) -> Self {
+        Self {
+            boundary,
+            neg_inv_density: -1.0 / density,
+            phase_function: Material::Isotropic(Isotropic::new_with_color(albedo)),
+        }
+    }
+}
+
+impl Hittable for ConstantMedium {
+    fn hit(&self, r: Ray, ray_t: Interval) -> Option<HitRecord> {
+        let hit1 = self.boundary.hit(r, Interval::UNIVERSE);
+
+        if hit1.is_none() {
+            return None;
+        }
+        let mut rec1 = hit1?;
+
+        let hit2 = self
+            .boundary
+            .hit(r, Interval::new(rec1.t + 0.0001, f64::INFINITY));
+
+        if hit2.is_none() {
+            return None;
+        }
+        let mut rec2 = hit2?;
+
+        if rec1.t < ray_t.min {
+            rec1.t = ray_t.min;
+        }
+        if rec2.t > ray_t.max {
+            rec2.t = ray_t.max;
+        }
+
+        if rec1.t >= rec2.t {
+            return None;
+        }
+
+        if rec1.t < 0.0 {
+            rec1.t = 0.0;
+        }
+
+        let ray_length = r.direction.length();
+        let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
+        let hit_distance = self.neg_inv_density * random_double().ln();
+
+        if hit_distance > distance_inside_boundary {
+            return None;
+        }
+
+        let t = rec1.t + hit_distance / ray_length;
+        let p = r.at(t);
+        let normal = Vec3::new(1.0, 0.0, 0.0);
+        let front_face = true;
+        let mat = &self.phase_function;
+
+        Some(HitRecord::new(p, normal, t, front_face, mat, 0.0, 0.0))
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.boundary.bounding_box()
     }
 }

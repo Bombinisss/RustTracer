@@ -35,13 +35,15 @@ impl Camera {
         }
 
         let hit = world.hit(r, Interval::new(0.001, f64::INFINITY));
-        
+
         if hit.is_none() {
             return background;
         }
 
         let temp_rec = hit.unwrap();
-        let color_from_emission = temp_rec.material.emitted(temp_rec.u, temp_rec.v, temp_rec.p);
+        let color_from_emission = temp_rec
+            .material
+            .emitted(temp_rec.u, temp_rec.v, temp_rec.p);
 
         let scat = temp_rec.material.scatter(&r, &temp_rec);
 
@@ -49,7 +51,8 @@ impl Camera {
             return color_from_emission;
         }
 
-        let color_from_scatter = scat.unwrap().1 * Self::ray_color(scat.unwrap().0.unwrap(), depth-1, world, background);
+        let color_from_scatter = scat.unwrap().1
+            * Self::ray_color(scat.unwrap().0.unwrap(), depth - 1, world, background);
 
         color_from_emission + color_from_scatter
     }
