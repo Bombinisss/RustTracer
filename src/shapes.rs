@@ -30,6 +30,29 @@ impl Cuboid {
         }
     }
 
+    pub fn new_from_corners(corner1: Vec3, corner2: Vec3, material: Material) -> Cuboid {
+        // Calculate the center
+        let center = (corner1 + corner2) / 2.0;
+
+        // Calculate the dimensions
+        let dimensions = Vec3::new(
+            (corner2.x() - corner1.x()).abs(),
+            (corner2.y() - corner1.y()).abs(),
+            (corner2.z() - corner1.z()).abs(),
+        );
+
+        // Create the AABB using the corners directly
+        let bbox = Aabb::new_from_vec3(corner1, corner2);
+
+        // Return the new Cuboid
+        Cuboid {
+            center,
+            dimensions,
+            material,
+            bbox,
+        }
+    }
+
     fn get_cuboid_uv(p_relative_to_center: Vec3, dimensions: Vec3) -> (f64, f64) {
         // Define UV ranges for each face of the cuboid
         let top_uv_range = ((0.25, 0.666666), (0.5, 1.0));
@@ -453,8 +476,9 @@ impl Quad {
         // Given the hit point in plane coordinates, return false if it is outside the
         // primitive, otherwise set the hit record UV coordinates and return true.
 
-        if !unit_interval.contains(a) || !unit_interval.contains(b)
-        { return false; }
+        if !unit_interval.contains(a) || !unit_interval.contains(b) {
+            return false;
+        }
 
         rec.u = a;
         rec.v = b;
@@ -492,7 +516,7 @@ impl Hittable for Quad {
             u: 0.0,
             v: 0.0,
         };
-        
+
         if !Quad::is_interior(alpha, beta, &mut rec) {
             return None;
         }

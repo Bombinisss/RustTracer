@@ -1,5 +1,8 @@
+use crate::vec3::Vec3;
 use rand::Rng;
+use std::f64::consts::PI;
 use std::ops::Add;
+
 pub fn random_double() -> f64 {
     // Returns a random real in [0, 1).
     let mut rng = rand::thread_rng();
@@ -12,7 +15,7 @@ pub fn random_double_range(min: f64, max: f64) -> f64 {
     rng.gen_range(min..max)
 }
 pub fn degrees_to_radians(degrees: f64) -> f64 {
-    degrees * std::f64::consts::PI / 180.0
+    degrees * PI / 180.0
 }
 
 pub fn _random_int_range(min: i32, max: i32) -> i32 {
@@ -96,4 +99,19 @@ impl Add<f64> for Interval {
     fn add(self, displacement: f64) -> Interval {
         Interval::new(self.min + displacement, self.max + displacement)
     }
+}
+
+pub fn rotate_y_translation(cube_center: Vec3, rotation_angle_deg: f64) -> Vec3 {
+    let theta_rad = rotation_angle_deg * PI / 180.0;
+
+    let (x, z) = (cube_center.x(), cube_center.z());
+
+    let x_prime = theta_rad.cos() * x + theta_rad.sin() * z;
+    let z_prime = -theta_rad.sin() * x + theta_rad.cos() * z;
+
+    // Calculate the required translation to bring the center back to its original position
+    let translation_x = x - x_prime;
+    let translation_z = z - z_prime;
+
+    Vec3::new(translation_x, 0.0, translation_z)
 }
