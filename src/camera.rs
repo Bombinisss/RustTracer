@@ -4,11 +4,12 @@ use crate::material::Scatterable;
 use crate::ray::Ray;
 use crate::utils::{degrees_to_radians, random_double, Interval};
 use crate::vec3::Vec3;
+use rayon::current_num_threads;
 use rayon::prelude::*;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 pub struct Camera {
@@ -68,14 +69,20 @@ impl Camera {
         let bands: Vec<(usize, &mut [u8])> =
             pixels.chunks_mut(image_width * 3).enumerate().collect();
 
-        let progress = Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let total_rows = image_height;
+        let num_threads = current_num_threads(); // Get the number of threads
+        let time_per_row = Arc::new(Mutex::new(Vec::new()));
+        let ema_row_time = Arc::new(Mutex::new(None::<f64>)); // EMA for row time
 
-        // Track start time
+        // Smoothing factor for exponential moving average (EMA)
+        let smoothing_factor = 0.1;
+
+        let progress = Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let start_time = Instant::now();
 
         // Parallel rendering of each row (band).
         bands.into_par_iter().for_each(|(j, band)| {
+            let row_start_time = Instant::now();
             for (i, pixel) in band.chunks_exact_mut(3).enumerate() {
                 let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
@@ -108,37 +115,63 @@ impl Camera {
                 pixel[2] = ib;
             }
 
-            // Update progress
-            let progress_count = progress.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            let percentage = (progress_count + 1) as f64 / total_rows as f64;
+            let row_elapsed_time = row_start_time.elapsed();
 
-            // Estimate remaining time
-            let elapsed_time = start_time.elapsed();
-            let estimated_total_time = if percentage > 0.0 {
-                let total_secs = elapsed_time.as_secs_f64() / percentage;
-                Duration::from_secs_f64(total_secs)
-            } else {
-                Duration::MAX
-            };
+            {
+                let mut time_per_row_lock = time_per_row.lock().unwrap();
+                time_per_row_lock.push(row_elapsed_time);
+            }
 
-            let remaining_time = estimated_total_time - elapsed_time;
+            // Update progress count
+            let processed_rows = progress.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
 
-            let bar_width = 50; // Width of the progress bar
-            let filled_length = (percentage * bar_width as f64).round() as usize;
-            let bar = "=".repeat(filled_length) + &" ".repeat(bar_width - filled_length);
+            if processed_rows % 10 == 0 {
+                // Push accumulated times to vector and compute EMA
+                let local_times: Vec<Duration>;
+                {
+                    let mut local_time_lock = time_per_row.lock().unwrap();
+                    local_times = std::mem::take(&mut *local_time_lock);
+                }
 
-            // Format remaining time as minutes and seconds
-            let remaining_minutes = remaining_time.as_secs() / 60;
-            let remaining_seconds = remaining_time.as_secs() % 60;
+                let row_time_secs: f64 = local_times.iter().map(|t| t.as_secs_f64()).sum::<f64>()
+                    / local_times.len() as f64;
+                {
+                    let mut ema_lock = ema_row_time.lock().unwrap();
+                    *ema_lock = match *ema_lock {
+                        Some(ema) => {
+                            Some(ema * (1.0 - smoothing_factor) + row_time_secs * smoothing_factor)
+                        }
+                        None => Some(row_time_secs),
+                    };
+                }
 
-            print!(
-                "\rRendering: [{}] {:.2}% - ETA: {}m {}s",
-                bar,
-                percentage * 100.0,
-                remaining_minutes,
-                remaining_seconds
-            );
-            io::stdout().flush().unwrap();
+                let average_row_time = ema_row_time.lock().unwrap().unwrap_or(row_time_secs);
+                let total_estimated_time =
+                    average_row_time * total_rows as f64 / num_threads as f64;
+
+                let elapsed_time = start_time.elapsed();
+                let remaining_time =
+                    Duration::from_secs_f64(total_estimated_time).saturating_sub(elapsed_time);
+
+                // Format progress and time
+                let percentage = processed_rows as f64 / total_rows as f64;
+                let bar_width = 50;
+                let filled_length = (percentage * bar_width as f64).round() as usize;
+                let bar = "=".repeat(filled_length) + &" ".repeat(bar_width - filled_length);
+
+                let remaining_minutes = remaining_time.as_secs() / 60;
+                let remaining_seconds = remaining_time.as_secs() % 60;
+
+                print!(
+                    "\rRendering: [{}] {:.2}% - ETA: {}m {}s (Row Time: {:.2}s)",
+                    bar,
+                    percentage * 100.0,
+                    remaining_minutes,
+                    remaining_seconds,
+                    row_elapsed_time.as_secs_f64(),
+                );
+                io::stdout().flush().unwrap();
+            }
         });
 
         print!("\rRendering: [{}] 100.00% - Done! ", "=".repeat(50));
