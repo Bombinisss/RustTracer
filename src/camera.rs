@@ -125,7 +125,7 @@ impl Camera {
             // Update progress count
             let processed_rows = progress.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
 
-            if processed_rows % 10 == 0 {
+            if processed_rows % 2 == 0 {
                 // Push accumulated times to vector and compute EMA
                 let local_times: Vec<Duration>;
                 {
